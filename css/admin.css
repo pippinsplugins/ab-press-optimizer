@@ -1,1 +1,86 @@
 /* This stylesheet is used to style the admin option form of the plugin. */
+.ab-press-header{
+	margin-top: 15px;
+}
+
+#icon-ab-press-optimizer{
+	  background: transparent url( '../assets/abPress-icon-page.png' ) no-repeat;
+}
+
+.ab-press-nav{
+	margin-top: 10px;
+}
+
+.ab-current-test{
+	text-align: center;
+	background: #fafafa;
+	border-radius: 8px;
+	padding: 10px 0;
+	margin: 15px 0;
+	-moz-box-shadow:0px 1px 2px #ccc;
+	-webkit-box-shadow:0px 1px 2px #ccc;
+	box-shadow:0px 1px 2px #ccc;
+}
+
+.ab-press-dashboard{
+	text-align: center;
+}
+
+.ab-press-dashboard li{
+	display: inline-block;
+	width: 22%;
+	margin:0 1%;
+	text-align: center;
+	font-weight: bold;
+	padding: 20px 0;
+	border-radius: 8px;
+	font-size: 30px;
+	line-height: 24px;
+	color: #fff;
+	text-shadow:1px 1px 1px #000000;
+}
+
+.ab-press-dashboard li span{
+	display: block;
+	font-size: 16px;
+	margin-bottom: 10px;
+}
+
+.totalVisitore{
+	background: #e84632;
+}
+
+.convertions{
+	background: #00bff3;
+}
+
+.converstionRate{
+	background: #c22f1d;
+}
+
+.variations{
+	background: #0189ae;
+}
+
+.experimentForm{
+	margin-top: 20px;
+}
+.ab-press-group {
+	margin-bottom: 20px;
+}
+
+.ab-press-label{
+	float: left;
+	padding: 0 10px;
+	width: 200px;
+	text-align: left;
+}
+
+.ab-press-controls{
+	margin-left: 230px;
+}
+
+textarea.regular-text{
+	width: 25em;
+	height: 60px;
+}

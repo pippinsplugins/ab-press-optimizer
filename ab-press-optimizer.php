@@ -2,20 +2,20 @@
 /**
  * @package   ab-press-optimizer
  * @author    Ivan Lopez
- * @link      http://OneClickCreations.com
+ * @link      http://ABPressOptimizer.com
  * @copyright 2013 Ivan Lopez
  *
  * @wordpress-plugin
  * Plugin Name: A/B Press Optimizer
- * Plugin URI:  http://OneClickCreations.com
+ * Plugin URI:  http://ABPressOptimizer.com
  * Description: Easy A/B testing from within your WordPress site.  Create an experiment to test any part of your post or page. Try new headlines, buttons and call to actions. View real time metrics to see what experiments are converting best and are statistically significant. 
  * Version:     1.0.0
  * Author:      Ivan Lopez
- * Author URI:  ttp://OneClickCreations.com
+ * Author URI:  ttp://ABPressOptimizer.com
  * Text Domain: ab-press-optimizer-locale
  *
  * ------------------------------------------------------------------------
- * Copyright 2013 A/b Press Optimizer (http://OneClickCreations.com)
+ * Copyright 2013 A/b Press Optimizer (http://ABPressOptimizer.com)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,10 +37,11 @@ if ( ! defined( 'WPINC' ) ) {
 	die;
 }
 
+
 require_once( plugin_dir_path( __FILE__ ) . 'class-ab-press-optimizer.php' );
 
 // Register hooks that are fired when the plugin is activated, deactivated, and uninstalled, respectively.
-register_activation_hook( __FILE__, array( 'ab-press-optimizer', 'activate' ) );
-register_deactivation_hook( __FILE__, array( 'ab-press-optimizer', 'deactivate' ) );
+register_activation_hook( __FILE__, array( 'ABPressOptimizer', 'activate' ) );
+register_deactivation_hook( __FILE__, array( 'ABPressOptimizer', 'deactivate' ) );
 
 ABPressOptimizer::get_instance();

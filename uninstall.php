@@ -2,9 +2,9 @@
 /**
  * Fired when the plugin is uninstalled.
  *
- * @package   A/B Press Optimizer
+ * @package   ab-press-optimizer
  * @author    Ivan Lopez
- * @link      http://OneClickCreations.com
+ * @link      http://ABPressOptimizer.com
  * @copyright 2013 Ivan Lopez
  */
 
@@ -12,5 +12,3 @@
 if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
 	exit;
 }
-
-// TODO: Define uninstall functionality here

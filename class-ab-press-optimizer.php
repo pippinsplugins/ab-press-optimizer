@@ -4,7 +4,7 @@
  *
  * @package   ab-press-optimizer
  * @author    Ivan Lopez
- * @link      http://OneClickCreations.com
+ * @link      http://ABPressOptimizer.com
  * @copyright 2013 Ivan Lopez
  */
 
@@ -14,7 +14,7 @@
  * @package ab-press-optimizer
  * @author  Ivan Lopez
  */
-class ab-press-optimizerOptimizer {
+class ABPressOptimizer {
 
 	/**
 	 * Plugin version, used for cache-busting of style and script file references.
@@ -66,7 +66,7 @@ class ab-press-optimizerOptimizer {
 		add_action( 'init', array( $this, 'load_plugin_textdomain' ) );
 
 		// Add the options page and menu item.
-		// add_action( 'admin_menu', array( $this, 'add_plugin_admin_menu' ) );
+		add_action( 'admin_menu', array( $this, 'add_plugin_admin_menu' ) );
 
 		// Load admin style sheet and JavaScript.
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_styles' ) );
@@ -80,6 +80,8 @@ class ab-press-optimizerOptimizer {
 		add_action( 'TODO', array( $this, 'action_method_name' ) );
 		add_filter( 'TODO', array( $this, 'filter_method_name' ) );
 
+		// Add Experiment Link to plugin page
+		add_filter('plugin_action_links',  array( $this, 'plugin_action_links') , 10, 2);
 	}
 
 	/**
@@ -106,9 +108,8 @@ class ab-press-optimizerOptimizer {
 	 *
 	 * @param    boolean    $network_wide    True if WPMU superadmin uses "Network Activate" action, false if WPMU is disabled or plugin is activated on an individual blog.
 	 */
-	public static function activate( $network_wide ) {
-		// TODO: Define activation functionality here
-		//check for multisite
+	public function activate( $network_wide ) {
+		update_option('ab_press_optimizer_version', '1.0.0');
 	}
 
 	/**
@@ -118,8 +119,8 @@ class ab-press-optimizerOptimizer {
 	 *
 	 * @param    boolean    $network_wide    True if WPMU superadmin uses "Network Deactivate" action, false if WPMU is disabled or plugin is deactivated on an individual blog.
 	 */
-	public static function deactivate( $network_wide ) {
-		// TODO: Define deactivation functionality here
+	public function deactivate( $network_wide ) {
+		delete_option('ab_press_optimizer_version');
 		//check for multisite
 	}
 
@@ -135,6 +136,9 @@ class ab-press-optimizerOptimizer {
 
 		load_textdomain( $domain, WP_LANG_DIR . '/' . $domain . '/' . $domain . '-' . $locale . '.mo' );
 		load_plugin_textdomain( $domain, FALSE, dirname( plugin_basename( __FILE__ ) ) . '/lang/' );
+	
+		$this->create_experiment_table();
+		$this->create_variations_table();
 	}
 
 	/**
@@ -145,16 +149,7 @@ class ab-press-optimizerOptimizer {
 	 * @return    null    Return early if no settings page is registered.
 	 */
 	public function enqueue_admin_styles() {
-
-		if ( ! isset( $this->plugin_screen_hook_suffix ) ) {
-			return;
-		}
-
-		$screen = get_current_screen();
-		if ( $screen->id == $this->plugin_screen_hook_suffix ) {
-			wp_enqueue_style( $this->plugin_slug .'-admin-styles', plugins_url( 'css/admin.css', __FILE__ ), array(), $this->version );
-		}
-
+		wp_enqueue_style( $this->plugin_slug .'-admin-styles', plugins_url( 'css/admin.css', __FILE__ ), array(), $this->version );
 	}
 
 	/**
@@ -165,16 +160,7 @@ class ab-press-optimizerOptimizer {
 	 * @return    null    Return early if no settings page is registered.
 	 */
 	public function enqueue_admin_scripts() {
-
-		if ( ! isset( $this->plugin_screen_hook_suffix ) ) {
-			return;
-		}
-
-		$screen = get_current_screen();
-		if ( $screen->id == $this->plugin_screen_hook_suffix ) {
-			wp_enqueue_script( $this->plugin_slug . '-admin-script', plugins_url( 'js/admin.js', __FILE__ ), array( 'jquery' ), $this->version );
-		}
-
+		wp_enqueue_script( $this->plugin_slug . '-admin-script', plugins_url( 'js/admin.js', __FILE__ ), array( 'jquery' ), $this->version );
 	}
 
 	/**
@@ -202,12 +188,68 @@ class ab-press-optimizerOptimizer {
 	 */
 	public function add_plugin_admin_menu() {
 
-		$this->plugin_screen_hook_suffix = add_plugins_page(
-			__( '"A/B Press Optimizer Experiments', $this->plugin_slug ),
+		add_menu_page(
 			__( 'A/B Press Optimizer', $this->plugin_slug ),
-			'read',
-			$this->plugin_slug,
-			array( $this, 'display_plugin_admin_page' )
+			__( 'A/B Press ', $this->plugin_slug ),
+			'administrator',
+			'abpo-experiment',
+			array( $this, 'display_plugin_experiment_page' ),
+			plugin_dir_url( __FILE__ ) . '/assets/abPress-icon.png',
+			1000
+		);
+
+		add_submenu_page(
+			'abpo-experiment',
+			__( 'A/B Press Optimizer', $this->plugin_slug ),
+			__( 'Experiments', $this->plugin_slug ),
+			'administrator',
+			'abpo-experiment',
+			array( $this, 'display_plugin_experiment_page' )
+		);
+
+		add_submenu_page(
+			'abpo-experiment',
+			__( 'A/B Press Optimizer Getting Started', $this->plugin_slug ),
+			__( 'Getting Started', $this->plugin_slug ),
+			'administrator',
+			'abpo-gettingStarted',
+			array( $this, 'display_plugin_getting_started' )
+		);
+
+		add_submenu_page(
+			'abpo-experiment',
+			__( 'A/B Press Optimizer Settings', $this->plugin_slug ),
+			__( 'Settings', $this->plugin_slug ),
+			'administrator',
+			'abpo-settings',
+			array( $this, 'display_plugin_settings' )
+		);
+
+		add_submenu_page(
+			'options.php',
+			__( 'New Experiment', $this->plugin_slug ),
+			"",
+			'administrator',
+			'abpo-new',
+			array( $this, 'display_new_experiment' )
+		);
+
+		add_submenu_page(
+			'options.php',
+			__( 'Detail Experiment', $this->plugin_slug ),
+			"",
+			'administrator',
+			'abpo-details',
+			array( $this, 'display_detail_experiment' )
+		);
+
+		add_submenu_page(
+			'options.php',
+			__( 'Edit Experiment', $this->plugin_slug ),
+			"",
+			'administrator',
+			'abpo-edit',
+			array( $this, 'display_edit_experiment' )
 		);
 
 	}
@@ -217,8 +259,75 @@ class ab-press-optimizerOptimizer {
 	 *
 	 * @since    1.0.0
 	 */
-	public function display_plugin_admin_page() {
-		include_once( 'views/admin.php' );
+	public function plugin_action_links($links, $file) {
+		static $this_plugin;
+ 
+		if (!$this_plugin) {
+		    $this_plugin = plugin_basename('ab-press-optimizer/ab-press-optimizer.php');
+		}
+		
+		print_r($file);
+
+		if ($file == $this_plugin) {
+		    $dashboard_link = '<a href="' . get_bloginfo('wpurl') . '/wp-admin/admin.php?page=abpo-experiment">Experiments</a>';
+			array_unshift($links, $dashboard_link);
+		}
+ 
+    	return $links;
+	}
+
+	/**
+	 * Render the Experiment page for this plugin.
+	 *
+	 * @since    1.0.0
+	 */
+	public function display_plugin_experiment_page() {
+		include_once( 'views/experiment.php' );
+	}
+
+	/**
+	 * Render the Getting Started page for this plugin.
+	 *
+	 * @since    1.0.0
+	 */
+	public function display_plugin_getting_started() {
+		include_once( 'views/gettingStarted.php' );
+	}
+
+	/**
+	 * Render the Settings page for this plugin.
+	 *
+	 * @since    1.0.0
+	 */
+	public function display_plugin_settings() {
+		include_once( 'views/settings.php' );
+	}
+
+	/**
+	 * Render the new experiment page for this plugin.
+	 *
+	 * @since    1.0.0
+	 */
+	public  function display_new_experiment() {
+		include_once( 'views/new.php' );
+	}
+
+	/**
+	 * Render view experiment page for this plugin.
+	 *
+	 * @since    1.0.0
+	 */
+	public  function display_details_experiment() {
+		include_once( 'views/details.php' );
+	}
+
+	/**
+	 * Render view experiment page for this plugin.
+	 *
+	 * @since    1.0.0
+	 */
+	public  function display_edit_experiment() {
+		include_once( 'views/edit.php' );
 	}
 
 	/**
