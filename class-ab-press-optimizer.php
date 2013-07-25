@@ -161,6 +161,7 @@ class ABPressOptimizer {
 	 */
 	public function enqueue_admin_scripts() {
 		wp_enqueue_script( $this->plugin_slug . '-admin-script', plugins_url( 'js/admin.js', __FILE__ ), array( 'jquery' ), $this->version );
+		wp_enqueue_script( $this->plugin_slug . '-admin-script-validation', plugins_url( 'js/jquery.validate.min.js', __FILE__ ), array( 'jquery' ), $this->version );
 	}
 
 	/**
@@ -266,8 +267,6 @@ class ABPressOptimizer {
 		    $this_plugin = plugin_basename('ab-press-optimizer/ab-press-optimizer.php');
 		}
 		
-		print_r($file);
-
 		if ($file == $this_plugin) {
 		    $dashboard_link = '<a href="' . get_bloginfo('wpurl') . '/wp-admin/admin.php?page=abpo-experiment">Experiments</a>';
 			array_unshift($links, $dashboard_link);
@@ -360,19 +359,21 @@ class ABPressOptimizer {
 	 * Create Databes for plugin
 	 */
 	private function create_experiment_table() {
-		$table_name = $this->get_table_name('experiment');
+		$table_name = self::get_table_name('experiment');
 		
 		if (!$this->database_table_exists($table_name)) {
 			$sql = "CREATE TABLE " . $table_name . " (
 					id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
 					name VARCHAR(250) NOT NULL DEFAULT '',
+					description VARCHAR(500) NOT NULL DEFAULT '',
 					status VARCHAR(25) NOT NULL DEFAULT '',
-					start_date DATETIME NOT NULL DEFAULT '0000-00-00 00:00:00',
-					end_date DATETIME NOT NULL DEFAULT '0000-00-00 00:00:00',
+					start_date DATE NOT NULL DEFAULT '0000-00-00 00:00:00',
+					end_date DATE NOT NULL DEFAULT '0000-00-00 00:00:00',
 					original VARCHAR(500) NOT NULL DEFAULT '',
 					total_visitors INT NOT NULL DEFAULT 0,
 					goal VARCHAR(500) NOT NULL DEFAULT '', 
 					goal_type VARCHAR(100) NOT NULL DEFAULT '',
+					url VARCHAR(500) NOT NULL DEFAULT '',
 					original_visits INT NOT NULL DEFAULT 0,
 					original_convertions INT NOT NULL DEFAULT 0,
 					date_created DATETIME NOT NULL DEFAULT '0000-00-00 00:00:00'
@@ -387,7 +388,7 @@ class ABPressOptimizer {
 	 * Create Databes for plugin
 	 */
 	private function create_variations_table() {
-		$table_name = $this->get_table_name('variations');
+		$table_name = self::get_table_name('variations');
 		
 		if (!$this->database_table_exists($table_name)) {
 			$sql = "CREATE TABLE " . $table_name . " (
@@ -411,7 +412,7 @@ class ABPressOptimizer {
 	 *
 	 * @return String
 	 */
-	private function get_table_name($name) {
+	public static function get_table_name($name) {
 		global $wpdb;
 		return $wpdb->prefix . 'ab_press_optimizer_' . $name;
 	}

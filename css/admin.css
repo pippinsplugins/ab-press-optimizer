@@ -20,6 +20,7 @@
 	-moz-box-shadow:0px 1px 2px #ccc;
 	-webkit-box-shadow:0px 1px 2px #ccc;
 	box-shadow:0px 1px 2px #ccc;
+	border-top: solid 1px #F0F0F0;
 }
 
 .ab-press-dashboard{
@@ -83,4 +84,91 @@
 textarea.regular-text{
 	width: 25em;
 	height: 60px;
+}
+
+.variationContainer {
+margin-bottom: 15px;
+}
+
+.delete-button{
+	background-color: #c22f1d;
+	background-image: -webkit-gradient(linear,left top,left bottom,from(#e84632),to(#c22f1d));
+	background-image: -webkit-linear-gradient(top,#e84632,#c22f1d);
+	background-image: -moz-linear-gradient(top,#e84632,#c22f1d);
+	background-image: -ms-linear-gradient(top,#e84632,#c22f1d);
+	background-image: -o-linear-gradient(top,#e84632,#c22f1d);
+	background-image: linear-gradient(to bottom,#e84632,#c22f1d);
+	border-color: #ad2716;
+	-webkit-box-shadow: inset 0 1px 0 rgba(245, 87 , 67, 0.5);
+	box-shadow: inset 0 1px 0 rgba(245, 87 , 67, 0.5);
+	color: #FFF;
+	text-decoration: none;
+	text-shadow: 0 1px 0 rgba(0, 0, 0, 0.1);
+	display: inline-block;
+	text-decoration: none;
+	font-size: 12px;
+	line-height: 23px;
+	height: 24px;
+	margin: 0;
+	padding: 0 10px 1px;
+	cursor: pointer;
+	border-width: 1px;
+	border-style: solid;
+	-webkit-border-radius: 3px;
+	-webkit-appearance: none;
+	border-radius: 3px;
+	white-space: nowrap;
+	-webkit-box-sizing: border-box;
+	-moz-box-sizing: border-box;
+	box-sizing: border-box;
+	margin-left: 12px;
+}
+
+.delete-button:hover{
+	background-color: #c22f1d;
+	background-image: -webkit-gradient(linear,left top,left bottom,from(#c22f1d),to(#e84632));
+	background-image: -webkit-linear-gradient(top,#c22f1d,#e84632);
+	background-image: -moz-linear-gradient(top,#c22f1d,#e84632);
+	background-image: -ms-linear-gradient(top,#c22f1d,#e84632);
+	background-image: -o-linear-gradient(top,#c22f1d,#e84632);
+	background-image: linear-gradient(to bottom,#c22f1d,#e84632);
+	color: #fff;
+}
+
+.variationItem {
+	background: #E2E2E2;
+	border-radius: 8px;
+	padding: 8px;
+	margin-bottom: 5px;
+}
+.variationItem select{ vertical-align: top }
+
+.ab-press-variation-label {
+	width: 50px;
+	display: inline-block;
+	margin-left: 10px;
+	vertical-align: top;
+	line-height: 24px;
+}
+
+.ab-press-class-label {
+	width: 92px;
+	display: inline-block;
+	margin-left: 15px;
+	vertical-align: top;
+	line-height: 24px;
+}
+
+.ab-press-class, .ab-press-variation  {
+	width: 190px;
+	vertical-align: top;
+}
+
+textarea.ab-press-variation  {
+	width: 495px;
+	vertical-align: top;
+}
+
+.inputError{
+	border-color: #C00!important;
 }

@@ -39,6 +39,7 @@ if ( ! defined( 'WPINC' ) ) {
 
 
 require_once( plugin_dir_path( __FILE__ ) . 'class-ab-press-optimizer.php' );
+require_once( plugin_dir_path( __FILE__ ) . 'functions.php' );
 
 // Register hooks that are fired when the plugin is activated, deactivated, and uninstalled, respectively.
 register_activation_hook( __FILE__, array( 'ABPressOptimizer', 'activate' ) );
