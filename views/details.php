@@ -13,9 +13,38 @@
 ?>
 <div class="wrap">
 
-	<?php screen_icon('ab-press-optimizer'); ?>
-	<h2><?php echo esc_html( get_admin_page_title() ); ?></h2>
+	<?php 
+		$experiment = getExperiment($_GET['eid']);
+		if(!$experiment)
+		{
+			createMessage("The experiment you selected does not exist!|ERROR");
+			header( 'Location: admin.php?page=abpo-experiment' ) ;
+		}
+	?>
 
-	<!-- TODO: Provide markup for your options page here. -->
-asdfasdf
+	<div class="ab-press-header">
+		<img src="<?php echo plugins_url( 'ab-press-optimizer/assets/ab-logo.png') ?>">
+	</div>
+
+	<?php screen_icon('ab-press-optimizer'); ?>
+	<h2><?php echo ucwords($experiment->name); ?></h2>
+	
+	<div class="ab-press-nav">
+		<a href="" class="button-primary" >Edit</a>
+		<a href="" class="delete-button " >Delete</a>
+	</div>
+
+	<div class="ab-current-test">
+		<h2>Experiment Summery</h2>
+		<ul class="ab-press-dashboard">
+			<li class="totalVisitore"><span>Total Visitors</span><?php echo $totalVisitor = $experiment->total_visitors; ?></li>
+			<li class="convertions"><span>Convertions</span><?php echo $totalConvertions = getTotalConvertions($experiment); ?></li>
+			<li class="converstionRate"><span>Convertion Rate</span>
+				<?php echo ($totalConvertions == 0) ? 0 : round($totalConvertions/$totalVisitor, 2) ?>%
+			</li>
+			<li class="variations"><span>Variations</span><?php echo count($experiment->variations); ?></li>
+		</ul>
+	</div>
+
+	<?php print_r($experiment) ?>
 </div>

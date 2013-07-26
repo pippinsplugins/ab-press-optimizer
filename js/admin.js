@@ -11,7 +11,7 @@
 				<input type="text" name="variation[]" class="ab-press-variation">\
 				<label class="ab-press-class-label" for="class[]">Element Class</label>\
 				<input type="text" name="class[]" class="ab-press-class">\
-				<a class="delete-button" href="#">Delete</a>\
+				<a class="delete-button as-remove-variation" href="#">Delete</a>\
 				</div>');
 			
 			var validationInput = item.find('.ab-press-variation');
@@ -51,7 +51,7 @@
 		});
 
 		//Remove Variation Item
-		$(document).on('click', ".delete-button", function(e){
+		$(document).on('click', ".as-remove-variation", function(e){
 			e.preventDefault();
 			var item = $(this).parent();
 			var validationInput = item.find('.ab-press-variation');
@@ -75,6 +75,11 @@
 			}
 		});
 
+		//Date Input
+		$( ".ab-datepicker" ).datepicker({
+	      showOtherMonths: true,
+	      selectOtherMonths: true
+	    });
 
 		//Experiment Validation
 		$('.ab-press-experimentForm').validate(
@@ -85,9 +90,11 @@
 			    },
 			    startDate: {
 			      	required: true,
+			      	date: true
 			    },
 			    endDate: {
 			      	required: true,
+			      	date: true
 			    },
 			    goal: {
 			      	required: true,
@@ -102,6 +109,13 @@
 			 $(element).closest('.ab-press-group').find('.inputError').removeClass('inputError');}
 		 });
 
+		//Date Input
+		$( ".ab-datepicker" ).datepicker({
+	      showOtherMonths: true,
+	      selectOtherMonths: true
+	    });
+
+	
 	});
 }(jQuery));
 

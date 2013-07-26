@@ -8,7 +8,7 @@
 }
 
 .ab-press-nav{
-	margin-top: 10px;
+	margin: 10px 0;
 }
 
 .ab-current-test{
@@ -121,6 +121,9 @@ margin-bottom: 15px;
 	-webkit-box-sizing: border-box;
 	-moz-box-sizing: border-box;
 	box-sizing: border-box;
+}
+
+.as-remove-variation{
 	margin-left: 12px;
 }
 

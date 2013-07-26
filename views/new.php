@@ -72,14 +72,14 @@ if(isset($_POST['save']))
 		<div class="ab-press-group">
 			<label class="ab-press-label" for="startDate">Start Date <span class="description">(required)</span></label>
 			<div class="ab-press-controls">
-				<input type="text" name="startDate" id="startDate" >
+				<input type="text" name="startDate" id="startDate" class="ab-datepicker" >
 			</div>
 		</div>
 
 		<div class="ab-press-group">
 			<label class="ab-press-label" for="endDate">End Date <span class="description">(required)</span></label>
 			<div class="ab-press-controls">
-				<input type="text"  name="endDate" id="endDate" >
+				<input type="text"  name="endDate" id="endDate"  class="ab-datepicker" >
 			</div>
 		</div>
 

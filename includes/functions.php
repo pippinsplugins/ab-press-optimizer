@@ -14,8 +14,8 @@ function storeExperiment($experiment)
 		'name' => $wpdb->escape($experiment->name),
 		'description' => $wpdb->escape($experiment->description),
 		'status' => 'running',
-		'start_date' => $experiment->startDate,
-		'end_date' => $experiment->endDate,
+		'start_date' => date("Y-m-d", strtotime($experiment->startDate)) ,
+		'end_date' => date("Y-m-d", strtotime($experiment->endDate)),
 		'goal' => $wpdb->escape($experiment->goal),
 		'goal_type' => $experiment->goalTrigger,
 		'url' => $experiment->url,
@@ -50,14 +50,33 @@ function udateExperiment($id, $experiment)
 }
 
 function getExperiment($id){
-
-}
-
-function getAllExperiment(){
 	global $wpdb;
 	$table = ABPressOptimizer::get_table_name('experiment');
 	$table2 = ABPressOptimizer::get_table_name('variations');
-	$query = "SELECT * FROM $table";
+	$query = "SELECT * FROM $table Where id = $id";
+	$query2 = "SELECT * FROM $table2";
+	$result = $wpdb->get_row($query, OBJECT );
+	$variations = $wpdb->get_results($query2, OBJECT );
+
+	if(!$result) return false;
+
+	$result->variations = []; 
+	foreach ($variations as $variation) {
+		if($result->id == $variation->experiment_id)
+			$result->variations[] = $variation;
+	}
+
+	return $result;
+}
+
+function getAllExperiment($offset = null, $limit = null){
+	global $wpdb;
+	$table = ABPressOptimizer::get_table_name('experiment');
+	$table2 = ABPressOptimizer::get_table_name('variations');
+	if(is_null($offset))
+		$query = "SELECT * FROM $table Order By date_created DESC";
+	else
+		$query = "SELECT * FROM $table Order By date_created DESC LIMIT $offset, $limit ";
 	$query2 = "SELECT * FROM $table2";
 	$results = $wpdb->get_results($query, OBJECT );
 	$variations = $wpdb->get_results($query2, OBJECT );
@@ -71,6 +90,17 @@ function getAllExperiment(){
 	 }
 
 	return $results;
+}
+
+function getTotalConvertions($experiment)
+{
+	$total = $experiment->original_convertions;
+
+	foreach ($experiment->variations as $variation) {
+		$total += $variation->convertions;
+	}
+
+	return $total;
 }
 
 function createMessage($message)

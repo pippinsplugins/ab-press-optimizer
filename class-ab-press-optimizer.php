@@ -150,6 +150,7 @@ class ABPressOptimizer {
 	 */
 	public function enqueue_admin_styles() {
 		wp_enqueue_style( $this->plugin_slug .'-admin-styles', plugins_url( 'css/admin.css', __FILE__ ), array(), $this->version );
+		wp_enqueue_style( $this->plugin_slug .'-admin-jquery-ui', plugins_url( 'css/jquery-ui.css', __FILE__ ), array(), $this->version );
 	}
 
 	/**
@@ -161,7 +162,7 @@ class ABPressOptimizer {
 	 */
 	public function enqueue_admin_scripts() {
 		wp_enqueue_script( $this->plugin_slug . '-admin-script', plugins_url( 'js/admin.js', __FILE__ ), array( 'jquery' ), $this->version );
-		wp_enqueue_script( $this->plugin_slug . '-admin-script-validation', plugins_url( 'js/jquery.validate.min.js', __FILE__ ), array( 'jquery' ), $this->version );
+		wp_enqueue_script('jquery-ui-datepicker');
 	}
 
 	/**
@@ -253,6 +254,15 @@ class ABPressOptimizer {
 			array( $this, 'display_edit_experiment' )
 		);
 
+		add_submenu_page(
+			'options.php',
+			__( 'Export Experiment', $this->plugin_slug ),
+			"",
+			'administrator',
+			'abpo-export',
+			array( $this, 'display_export_experiment' )
+		);
+
 	}
 
 	/**
@@ -316,8 +326,17 @@ class ABPressOptimizer {
 	 *
 	 * @since    1.0.0
 	 */
-	public  function display_details_experiment() {
+	public  function display_detail_experiment() {
 		include_once( 'views/details.php' );
+	}
+
+	/**
+	 * Render edit experiment page for this plugin.
+	 *
+	 * @since    1.0.0
+	 */
+	public  function display_edit_experiment() {
+		include_once( 'views/edit.php' );
 	}
 
 	/**
@@ -325,8 +344,8 @@ class ABPressOptimizer {
 	 *
 	 * @since    1.0.0
 	 */
-	public  function display_edit_experiment() {
-		include_once( 'views/edit.php' );
+	public  function display_export_experiment() {
+		include_once( 'views/export.php' );
 	}
 
 	/**
