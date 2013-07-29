@@ -30,6 +30,8 @@
 		<a href="<?php bloginfo('wpurl') ?>/wp-admin/admin.php?page=abpo-export&noheader=true" class="button" >Export to CSV</a>
 	</div>
 
+
+
 	<?php
 		if(isset($_SESSION['message']))
 		{
@@ -37,9 +39,10 @@
 			if(count($message) > 1 )
 				echo "<div id='message' class=' below-h2 error'><p>".$message[0]."</p></div>";
 			else
-				echo "<div id='message' class='updated below-h2'><p>".$message."</p></div>";
+				echo "<div id='message' class='updated below-h2'><p>".$message[0]."</p></div>";
 			deleteMessage();
 		}
+		
 	?>
 
 	<?php 
@@ -60,16 +63,27 @@
 		    'current' => $pagenum
 		) );
 	?>
+
+	<?php
+		foreach ($experiments as $experiment) {
+			if($experiment->status == "running")
+			{
+				$featuredExperiment = $experiment;
+				break;
+			}
+		}
+	?>
 	
 	<div class="ab-current-test">
-		<h2>Current Experiment: <a href="admin.php?page=abpo-details&eid=<?php echo $experiments[0]->id; ?>"><?php echo ucwords($experiments[0]->name); ?></a> </h2>
+		<h2>Current Summery Experiment: <a href="admin.php?page=abpo-details&eid=<?php echo $featuredExperiment->id; ?>"><?php echo ucwords($featuredExperiment->name); ?></a> </h2>
+
 		<ul class="ab-press-dashboard">
-			<li class="totalVisitore"><span>Total Visitors</span><?php echo $totalVisitor = $experiments[0]->total_visitors; ?></li>
-			<li class="convertions"><span>Convertions</span><?php echo $totalConvertions = getTotalConvertions($experiments[0]); ?></li>
+			<li class="totalVisitore"><span>Total Visitors</span><?php echo number_format($totalVisitor = getTotalVisitors($featuredExperiment)); ?></li>
+			<li class="convertions"><span>Convertions</span><?php echo number_format($totalConvertions = getTotalConvertions($featuredExperiment));  ?></li>
 			<li class="converstionRate"><span>Convertion Rate</span>
-				<?php echo ($totalConvertions == 0) ? 0 : round($totalConvertions/$totalVisitor, 2) ?>%
+				<?php echo ($totalConvertions == 0) ? "0%" : getConvertionRate($totalConvertions,$totalVisitor);?>%
 			</li>
-			<li class="variations"><span>Variations</span><?php echo count($experiments[0]->variations); ?></li>
+			<li class="variations"><span>Variations</span><?php echo count($featuredExperiment->variations); ?></li>
 		</ul>
 	</div>
 	
@@ -104,11 +118,11 @@
 
 		<tr>
 			<th><a href="admin.php?page=abpo-details&eid=<?php echo $experiment->id; ?>"><?php echo ucwords($experiment->name); ?></a></th>
-			<th><?php echo $experiment->total_visitors; ?></th>
-			<th><?php echo $totalVariatioConvertion = getTotalConvertions($experiment) ?></th>
-			<th><?php echo ($totalVariatioConvertion == 0) ? 0 : round($totalVariatioConvertion/$experiment->total_visitors, 2) ?>% </th>
+			<th><?php echo number_format($totalVariationVisitor = getTotalVisitors($experiment)); ?></th>
+			<th><?php echo number_format($totalVariationConvertion = getTotalConvertions($experiment));  ?></th>
+			<th><?php echo ($totalVariationConvertion == 0) ? "0" : getConvertionRate($totalVariationConvertion,$totalVariationVisitor);?>%</th>
 			<th><?php echo count($experiment->variations); ?></th>
-			<th><?php echo date("d-m-Y", strtotime($experiment->start_date)) ?> - <?php echo date("d-m-Y", strtotime($experiment->end_date)) ?></th>
+			<th><?php echo date("m-d-Y", strtotime($experiment->start_date)) ?> - <?php echo date("m-d-Y", strtotime($experiment->end_date)) ?></th>
 			<th><?php echo ucwords($experiment->status); ?></th>
 		</tr>
 
@@ -122,7 +136,4 @@
     		echo '<div class="tablenav"><div class="tablenav-pages" style="margin: 1em 0">' . $page_links . '</div></div>';
 		}
 	?>
-
-	<!-- TODO: Provide markup for your options page here. -->
-
 </div>

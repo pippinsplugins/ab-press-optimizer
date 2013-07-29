@@ -161,6 +161,8 @@ class ABPressOptimizer {
 	 * @return    null    Return early if no settings page is registered.
 	 */
 	public function enqueue_admin_scripts() {
+		wp_enqueue_script( $this->plugin_slug . '-admin-validation', plugins_url( 'js/jquery.validate.min.js', __FILE__ ), array( 'jquery' ), $this->version );
+		wp_enqueue_script( $this->plugin_slug . '-admin-validationMethod', plugins_url( 'js/additional-methods.js', __FILE__ ), array( 'jquery' ), $this->version );
 		wp_enqueue_script( $this->plugin_slug . '-admin-script', plugins_url( 'js/admin.js', __FILE__ ), array( 'jquery' ), $this->version );
 		wp_enqueue_script('jquery-ui-datepicker');
 	}
@@ -228,40 +230,41 @@ class ABPressOptimizer {
 		);
 
 		add_submenu_page(
-			'options.php',
+			'abpo-experiment',
 			__( 'New Experiment', $this->plugin_slug ),
-			"",
+			'New',
 			'administrator',
 			'abpo-new',
 			array( $this, 'display_new_experiment' )
 		);
 
 		add_submenu_page(
-			'options.php',
+			'abpo-experiment',
 			__( 'Detail Experiment', $this->plugin_slug ),
-			"",
+			"Detail",
 			'administrator',
 			'abpo-details',
 			array( $this, 'display_detail_experiment' )
 		);
 
 		add_submenu_page(
-			'options.php',
+			'abpo-experiment',
 			__( 'Edit Experiment', $this->plugin_slug ),
-			"",
+			"Edit",
 			'administrator',
 			'abpo-edit',
 			array( $this, 'display_edit_experiment' )
 		);
 
 		add_submenu_page(
-			'options.php',
+			'abpo-experiment',
 			__( 'Export Experiment', $this->plugin_slug ),
-			"",
+			"Export",
 			'administrator',
 			'abpo-export',
 			array( $this, 'display_export_experiment' )
 		);
+
 
 	}
 
@@ -388,8 +391,6 @@ class ABPressOptimizer {
 					status VARCHAR(25) NOT NULL DEFAULT '',
 					start_date DATE NOT NULL DEFAULT '0000-00-00 00:00:00',
 					end_date DATE NOT NULL DEFAULT '0000-00-00 00:00:00',
-					original VARCHAR(500) NOT NULL DEFAULT '',
-					total_visitors INT NOT NULL DEFAULT 0,
 					goal VARCHAR(500) NOT NULL DEFAULT '', 
 					goal_type VARCHAR(100) NOT NULL DEFAULT '',
 					url VARCHAR(500) NOT NULL DEFAULT '',
@@ -414,6 +415,7 @@ class ABPressOptimizer {
 					id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
 					experiment_id INT NOT NULL,
 					type VARCHAR(100) NOT NULL DEFAULT '',
+					name VARCHAR(250) NOT NULL DEFAULT '',
 					value VARCHAR(500) NOT NULL DEFAULT '',
 					class VARCHAR(500) NOT NULL DEFAULT '',
 					visits INT NOT NULL DEFAULT 0,

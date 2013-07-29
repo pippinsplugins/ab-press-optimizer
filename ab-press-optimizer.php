@@ -47,3 +47,7 @@ register_activation_hook( __FILE__, array( 'ABPressOptimizer', 'activate' ) );
 register_deactivation_hook( __FILE__, array( 'ABPressOptimizer', 'deactivate' ) );
 
 ABPressOptimizer::get_instance();
+
+session_start();
+
+$_SESSION['test'] = "asdsdaf";

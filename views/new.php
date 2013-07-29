@@ -16,8 +16,11 @@
 
 if(isset($_POST['save']))
 	{
-		if(storeExperiment($_POST) )
+		if(storeExperiment($_POST, $_FILES ) )
+		{
 			header( 'Location: admin.php?page=abpo-experiment' ) ;
+			exit();
+		}
 	}
 ?>
 
@@ -58,17 +61,6 @@ if(isset($_POST['save']))
 			</div>
 		</div>
 
-		<!-- <div class="ab-press-group">
-			<label class="ab-press-label" for="status">Status</label>
-			<div class="ab-press-controls">
-				<select name="status" id="status">
-					<option value="running">Running</option>
-					<option value="paused">Paused</option>
-					<option value="Complete">Complete</option>
-				</select>
-			</div>
-		</div> -->
-
 		<div class="ab-press-group">
 			<label class="ab-press-label" for="startDate">Start Date <span class="description">(required)</span></label>
 			<div class="ab-press-controls">
@@ -104,7 +96,27 @@ if(isset($_POST['save']))
 		<div class="ab-press-group" id="ab-urlGroup">
 			<label class="ab-press-label" for="url">URL <span class="description">(required)</span></label>
 			<div class="ab-press-controls">
-				<input type="text" id="url" name="url" class="regular-text">
+				<select id="url" name="url">
+					<option value="" >Select a Page</option>
+					<?php 
+						foreach( get_post_types( array('public' => true) ) as $post_type ) {
+						  if ( in_array( $post_type, array('attachment') ) )
+						    continue;
+						  	$pt = get_post_type_object( $post_type );
+							
+							echo "  <optgroup label=".$pt->labels->name.">";
+
+							query_posts('post_type='.$post_type.'&posts_per_page=-1');
+							while( have_posts() ) {
+								the_post();
+								echo "<option value=".get_permalink().">".get_the_title()."</option>";
+							}
+
+							echo "</optgroup>";
+						}
+					?>
+					
+				</select>
 			</div>
 		</div>
 
@@ -124,5 +136,4 @@ if(isset($_POST['save']))
 
 	</form>
 
-	<!-- TODO: Provide markup for your options page here. -->
 </div>
