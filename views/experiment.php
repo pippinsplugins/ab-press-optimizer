@@ -40,7 +40,7 @@
 				echo "<div id='message' class=' below-h2 error'><p>".$message[0]."</p></div>";
 			else
 				echo "<div id='message' class='updated below-h2'><p>".$message[0]."</p></div>";
-			deleteMessage();
+			ab_press_deleteMessage();
 		}
 		
 	?>
@@ -49,9 +49,9 @@
 		$pagenum = isset( $_GET['paging'] ) ? absint( $_GET['paging'] ) : 1;
      	$limit = 10;
      	$offset = ( $pagenum - 1 ) * $limit;
-		$experiments = getAllExperiment($offset, $limit);
+		$experiments = ab_press_getAllExperiment($offset, $limit);
 
-		$total = count(getAllExperiment());
+		$total = count(ab_press_getAllExperiment());
 		$num_of_pages = ceil( $total / $limit );
 
 		$page_links = paginate_links( array(
@@ -78,10 +78,10 @@
 		<h2>Current Summery Experiment: <a href="admin.php?page=abpo-details&eid=<?php echo $featuredExperiment->id; ?>"><?php echo ucwords($featuredExperiment->name); ?></a> </h2>
 
 		<ul class="ab-press-dashboard">
-			<li class="totalVisitore"><span>Total Visitors</span><?php echo number_format($totalVisitor = getTotalVisitors($featuredExperiment)); ?></li>
-			<li class="convertions"><span>Convertions</span><?php echo number_format($totalConvertions = getTotalConvertions($featuredExperiment));  ?></li>
+			<li class="totalVisitore"><span>Total Visitors</span><?php echo number_format($totalVisitor = ab_press_getTotalVisitors($featuredExperiment)); ?></li>
+			<li class="convertions"><span>Convertions</span><?php echo number_format($totalConvertions = ab_press_getTotalConvertions($featuredExperiment));  ?></li>
 			<li class="converstionRate"><span>Convertion Rate</span>
-				<?php echo ($totalConvertions == 0) ? "0%" : getConvertionRate($totalConvertions,$totalVisitor);?>%
+				<?php echo ($totalConvertions == 0) ? "0%" : ab_press_getConvertionRate($totalConvertions,$totalVisitor);?>%
 			</li>
 			<li class="variations"><span>Variations</span><?php echo count($featuredExperiment->variations); ?></li>
 		</ul>
@@ -118,9 +118,9 @@
 
 		<tr>
 			<th><a href="admin.php?page=abpo-details&eid=<?php echo $experiment->id; ?>"><?php echo ucwords($experiment->name); ?></a></th>
-			<th><?php echo number_format($totalVariationVisitor = getTotalVisitors($experiment)); ?></th>
-			<th><?php echo number_format($totalVariationConvertion = getTotalConvertions($experiment));  ?></th>
-			<th><?php echo ($totalVariationConvertion == 0) ? "0" : getConvertionRate($totalVariationConvertion,$totalVariationVisitor);?>%</th>
+			<th><?php echo number_format($totalVariationVisitor = ab_press_getTotalVisitors($experiment)); ?></th>
+			<th><?php echo number_format($totalVariationConvertion = ab_press_getTotalConvertions($experiment));  ?></th>
+			<th><?php echo ($totalVariationConvertion == 0) ? "0" : ab_press_getConvertionRate($totalVariationConvertion,$totalVariationVisitor);?>%</th>
 			<th><?php echo count($experiment->variations); ?></th>
 			<th><?php echo date("m-d-Y", strtotime($experiment->start_date)) ?> - <?php echo date("m-d-Y", strtotime($experiment->end_date)) ?></th>
 			<th><?php echo ucwords($experiment->status); ?></th>

@@ -17,7 +17,7 @@ header('Content-Disposition: attachment; filename="ABPO-Report-'. date("Y-m-d").
   
 $outstream = fopen("php://output",'w');  
   
-$data = getAllExperiment();
+$data = ab_press_getAllExperiment();
 $heders = ['Name', 'Description', 'Start Date', 'End Date', 'Total Visitors', 'Goal', 'Goal Type', 'URL'];
 fputcsv($outstream, $heders, ',', '"');  
 

@@ -164,6 +164,8 @@ class ABPressOptimizer {
 		wp_enqueue_script( $this->plugin_slug . '-admin-validation', plugins_url( 'js/jquery.validate.min.js', __FILE__ ), array( 'jquery' ), $this->version );
 		wp_enqueue_script( $this->plugin_slug . '-admin-validationMethod', plugins_url( 'js/additional-methods.js', __FILE__ ), array( 'jquery' ), $this->version );
 		wp_enqueue_script( $this->plugin_slug . '-admin-script', plugins_url( 'js/admin.js', __FILE__ ), array( 'jquery' ), $this->version );
+	    wp_enqueue_script( $this->plugin_slug . '-admin-sparkline', plugins_url( 'js/jquery.sparkline.min.js', __FILE__ ), array( 'jquery' ), $this->version );
+
 		wp_enqueue_script('jquery-ui-datepicker');
 	}
 
@@ -265,6 +267,15 @@ class ABPressOptimizer {
 			array( $this, 'display_export_experiment' )
 		);
 
+		add_submenu_page(
+			'abpo-experiment',
+			__( 'Delete Experiment', $this->plugin_slug ),
+			"Export",
+			'administrator',
+			'abpo-delete',
+			array( $this, 'display_delete_experiment' )
+		);
+
 
 	}
 
@@ -347,8 +358,30 @@ class ABPressOptimizer {
 	 *
 	 * @since    1.0.0
 	 */
-	public  function display_export_experiment() {
-		include_once( 'views/export.php' );
+	public  function display_delete_experiment() {
+		$experiment = ab_press_getExperiment($_GET['eid']);
+		if(!$experiment)
+		{
+			ab_press_createMessage("The experiment you selected does not exist!|ERROR");
+			header( 'Location: admin.php?page=abpo-details&eid='.$_GET['eid'] ) ;
+		}
+		else
+		{
+			global $wpdb;
+			$wpdb->delete( self::get_table_name('experiment'), array( 'id' => $_GET['eid'] ) );
+
+			$wpdb->query( 
+				$wpdb->prepare( 
+					"DELETE FROM " .self::get_table_name('variations') ."
+					 WHERE experiment_id = %d",
+				       $_GET['eid']
+			        )
+			);
+			ab_press_createMessage("Your experiment has been deleted succesfully!");
+			header( 'Location: admin.php?page=abpo-experiment' ) ;	
+		}
+
+		
 	}
 
 	/**

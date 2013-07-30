@@ -14,12 +14,24 @@
 <div class="wrap">
 
 	<?php 
-		$experiment = getExperiment($_GET['eid']);
+		$experiment = ab_press_getExperiment($_GET['eid']);
 		if(!$experiment)
 		{
-			createMessage("The experiment you selected does not exist!|ERROR");
+			ab_press_createMessage("The experiment you selected does not exist!|ERROR");
 			header( 'Location: admin.php?page=abpo-experiment' ) ;
 			exit();
+		}
+	?>
+	
+	<?php
+		if(isset($_SESSION['message']))
+		{
+			$message = explode("|", $_SESSION['message']);
+			if(count($message) > 1 )
+				echo "<div id='message' class=' below-h2 error'><p>".$message[0]."</p></div>";
+			else
+				echo "<div id='message' class='updated below-h2'><p>".$message[0]."</p></div>";
+			ab_press_deleteMessage();
 		}
 	?>
 
@@ -33,16 +45,16 @@
 	<div class="ab-press-nav">
 		<a href="admin.php?page=abpo-new" class="button-primary" >Add New</a>
 		<a href="admin.php?page=abpo-edit&eid=<?php echo $experiment->id; ?>" class="button" >Edit</a>
-		<a href="" class="delete-button " >Delete</a>
+		<a href="admin.php?page=abpo-delete&eid=<?php echo $_GET['eid']; ?>" class="delete-button " >Delete</a>
 	</div>
 
 	<div class="ab-current-test">
 		<h2>Experiment Summery</h2>
 		<ul class="ab-press-dashboard">
-			<li class="totalVisitore"><span>Total Visitors</span><?php echo number_format($totalVisitor = getTotalVisitors($experiment)); ?></li>
-			<li class="convertions"><span>Convertions</span><?php echo number_format($totalConvertions = getTotalConvertions($experiment));  ?></li>
+			<li class="totalVisitore"><span>Total Visitors</span><?php echo number_format($totalVisitor = ab_press_getTotalVisitors($experiment)); ?></li>
+			<li class="convertions"><span>Convertions</span><?php echo number_format($totalConvertions = ab_press_getTotalConvertions($experiment));  ?></li>
 			<li class="converstionRate"><span>Convertion Rate</span>
-				<?php echo ($totalConvertions == 0) ? "0" : getConvertionRate($totalConvertions,$totalVisitor);?>%
+				<?php echo ($totalConvertions == 0) ? "0" : ab_press_getConvertionRate($totalConvertions,$totalVisitor);?>%
 			</li>
 			<li class="variations"><span>Variations</span><?php echo count($experiment->variations); ?></li>
 		</ul>
@@ -52,7 +64,7 @@
 	<div class="ab-columns-2">
 		<div class="ab-column-content">
 			<h3>Description</h3>
-			<p><?php echo $experiment->description; ?></p>
+			<p><?php echo ($experiment->description != "") ? $experiment->description : "N/A"; ?></p>
 			<h3>Goal</h3>
 			<p><?php echo $experiment->goal; ?></p>
 		</div>
@@ -61,22 +73,24 @@
 	<div class="ab-columns-2">
 		<div class="ab-column-content">
 			<h3>Staus</h3>
-			<p><?php echo $experiment->status; ?></p>		
+			<p><?php echo ucwords($experiment->status); ?></p>		
 			<h3>Experimanet Date</h3>
 			<p><?php echo date("m-d-Y", strtotime($experiment->start_date)) ?> - <?php echo date("m-d-Y", strtotime($experiment->end_date)) ?></p>
 		</div>
 	</div>	
 
 	<h2>Experiments</h2>
+	<?php if($totalConvertions > 0) : ?>
+		<p><?php echo  ab_press_experimentWinner($experiment);?></p>
+	<?php endif; ?>
 
-	<p>Test ? is beationg out the origanial by +x%</p>
 
 	<table class="widefat">
 		<thead>
 		    <tr>
-		        <th>Variation</th>
-		        <th>Convertion Rate</th>       
-		        <th>Percentage of Improvement</th>
+		        <th width="250">Variation</th>
+		        <th colspan="2">Convertion Rate</th>       
+		        <th>Improvement</th>
 		        <th>Change To Beat Original</th>       
 		        <th>Convertion</th>
 		        <th>Visitors</th>
@@ -85,8 +99,8 @@
 		<tfoot>
 		     <tr>
 		        <th>Variation</th>
-		        <th>Convertion Rate</th>       
-		        <th>Percentage of Improvement</th>
+		        <th colspan="2">Convertion Rate</th>       
+		        <th>Improvement</th>
 		        <th>Change To Beat Original</th>       
 		        <th>Convertion</th>
 		        <th>Visitors</th>
@@ -97,13 +111,41 @@
 		<tr>
 			<th>Control</th> 
 			<th>
-				<?php echo $controlConvertion = ($experiment->original_convertions == 0) ? 0 : getConvertionRate($experiment->original_convertions,$experiment->original_visits); ?>%
-				( &plusmn;<?php echo $controlInterval = getConfidenceInterval($experiment->original_convertions,$experiment->original_visits); ?>)
+				<?php echo $controlConvertion = ($experiment->original_convertions == 0) ? 0 : ab_press_getConvertionRate($experiment->original_convertions,$experiment->original_visits); ?>%
+				<?php if($controlConvertion != 0): ?>
+					( &plusmn;<?php echo $controlInterval = ab_press_getConfidenceInterval($experiment->original_convertions,$experiment->original_visits); ?>)
+				<?php endif; ?>
+			</th>
+			<th width="220">
+				<div id="experiment<?php echo $experiment->id;?>" class="ab-boxplot"></div>
+				<?php if($controlConvertion != 0): ?>
+
+					<script type="text/javascript">
+						jQuery(document).ready(function() {
+
+							jQuery("#experiment<?php echo $experiment->id;?>").sparkline(
+							[<?php echo ab_press_getPlotControlData($experiment); ?>], {
+						    type: 'box',
+						    width: "200",
+						    showOutliers:false,
+						    medianColor: "black",
+						    boxFillColor: '#e5e5e5',
+						    whiskerColor: '#cccccc',
+						    minValue: 6,
+	   						maxValue: 20,
+	   						disableTooltips: true,
+	   						raw:true
+						  
+						    });
+						})
+						
+					</script>
+				<?php endif; ?>
 			</th>
 			<th> -- </th>
 			<th> -- </th>
-			<th><?php echo $experiment->original_convertions; ?></th>
-			<th><?php echo $experiment->original_visits; ?></th>
+			<th><?php echo number_format($experiment->original_convertions); ?></th>
+			<th><?php echo number_format($experiment->original_visits); ?></th>
 		</tr>
 
 		<?php foreach ($experiment->variations as $variations): ?>
@@ -111,12 +153,40 @@
 		<tr>
 			<th><?php echo ucwords($variations->name); ?></th>
 			<th>
-				<?php echo $variationConvertion = ($variations->convertions == 0) ? 0 : getConvertionRate($variations->convertions,$variations->visits); ?>% 
-				( &plusmn;<?php echo $variationInterval = getConfidenceInterval($variations->convertions,$variations->visits); ?>)</th>
-			<th><?php echo getImprovement($controlConvertion, $variationConvertion ) ?>%</th>
-			<th><?php echo getSignificance($experiment->original_convertions/$experiment->original_visits, $controlInterval, $variations->convertions/$variations->visits, $variationInterval ); ?>%</th>
-			<th><?php echo $variations->convertions; ?></th>
-			<th><?php echo $variations->visits; ?></th>
+				<?php echo $variationConvertion = ($variations->convertions == 0) ? 0 : ab_press_getConvertionRate($variations->convertions,$variations->visits); ?>% 
+				<?php if($variationConvertion != 0): ?>
+					( &plusmn;<?php echo $variationInterval = ab_press_getConfidenceInterval($variations->convertions,$variations->visits); ?>)
+				<?php endif; ?>
+			</th>
+			<th width="220">
+				<div id="variation<?php echo $variations->id;?>" class="ab-boxplot"></div>
+				
+				<?php if($variationConvertion != 0): ?>
+					<script type="text/javascript">
+						jQuery(document).ready(function() {
+
+							jQuery("#variation<?php echo $variations->id;?>").sparkline(
+							[<?php echo ab_press_getPlotVariationData($variations); ?>], {
+						    type: 'box',
+						    width: "200",
+						    showOutliers:false,
+						    medianColor: "black",
+						    boxFillColor: '#e5e5e5',
+						    whiskerColor: '#cccccc',
+						    minValue: 6,
+	    				    maxValue: 50,
+	    				    disableTooltips: true,
+	    				    raw:true
+						    });
+						})
+						
+					</script>
+				<?php endif; ?>
+			</th>
+			<th><?php echo ab_press_getImprovement($controlConvertion, $variationConvertion ) ?>%</th>
+			<th><?php echo ab_press_getSignificance($experiment, $variations ); ?>%</th>
+			<th><?php echo number_format($variations->convertions); ?></th>
+			<th><?php echo number_format($variations->visits); ?></th>
 		</tr>
 
 		<?php endforeach; ?>
@@ -124,8 +194,5 @@
 		</tbody>
 	</table>
 
-	
-	<?php echo $a = getConfidenceInterval(48 ,552); ?> <br>
-	<?php echo $b = getConfidenceInterval(727 ,5502); ?> <br>
-	<?php echo getSignificance(13.21, $b  ,8.7, $a  ); ?>
+
 </div>

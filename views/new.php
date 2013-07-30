@@ -16,7 +16,7 @@
 
 if(isset($_POST['save']))
 	{
-		if(storeExperiment($_POST, $_FILES ) )
+		if(ab_press_storeExperiment($_POST, $_FILES ) )
 		{
 			header( 'Location: admin.php?page=abpo-experiment' ) ;
 			exit();
@@ -39,7 +39,7 @@ if(isset($_POST['save']))
 		if(isset($_SESSION['message']))
 		{
 			echo "<div id='message' class='error'><p>".$_SESSION['message']."</p></div>";
-			deleteMessage();
+			ab_press_deleteMessage();
 		}
 	?>
 

@@ -78,7 +78,7 @@
 }
 
 .ab-press-file{
-	width: 180px;
+	width: 132px;
 }
 
 .ab-image-holder{
@@ -160,7 +160,7 @@ textarea.regular-text{
 }
 .variationItem select{ vertical-align: top }
 
-.ab-press-variation-label {
+.ab-press-variation-label , .ab-press-variation-label-name{
 	width: 50px;
 	display: inline-block;
 	margin-left: 10px;
@@ -176,13 +176,13 @@ textarea.regular-text{
 	line-height: 24px;
 }
 
-.ab-press-class, .ab-press-variation  {
-	width: 190px;
+.ab-press-class, .ab-press-variation, .ab-press-variation-name {
+	width: 140px;
 	vertical-align: top;
 }
 
 textarea.ab-press-variation  {
-	width: 495px;
+	width: 395px;
 	vertical-align: top;
 }
 

@@ -16,17 +16,17 @@
 
 if(isset($_POST['update']))
 	{
-		if(updateExperiment($_POST, $_FILES ) )
+		if(ab_press_updateExperiment($_POST, $_FILES ) )
 		{
 			header( 'Location: admin.php?page=abpo-experiment' ) ;
 			exit();
 		}
 	}
 
-	$experiment = getExperiment($_GET['eid']);
+	$experiment = ab_press_getExperiment($_GET['eid']);
 	if(!$experiment)
 	{
-		createMessage("The experiment you selected does not exist!|ERROR");
+		ab_press_createMessage("The experiment you selected does not exist!|ERROR");
 		header( 'Location: admin.php?page=abpo-experiment' ) ;
 		exit();
 	}
@@ -50,7 +50,7 @@ if(isset($_POST['update']))
 		if(isset($_SESSION['message']))
 		{
 			echo "<div id='message' class='error'><p>".$_SESSION['message']."</p></div>";
-			deleteMessage();
+			ab_press_deleteMessage();
 		}
 	?>
 
@@ -160,15 +160,18 @@ if(isset($_POST['update']))
 						<option value="html" <?php echo ($variation->type == "html") ? "selected='selected'" : "" ?>>HTML</option>
 						<option value="img" <?php echo ($variation->type == "img") ? "selected='selected'" : "" ?>>Image</option>
 					</select>
-					
+
+					<label class="ab-press-variation-label-name" for="variationName[]">Name</label>
+					<input type="text" name="variationName[]" class="ab-press-variation-name variationName" value="<?php echo $variation->name; ?>">
+
 					<?php if($variation->type == "text"): ?>
 						<label class="ab-press-variation-label" for="variation[]">Content</label>
-						<input type="text" name="variation[]" class="ab-press-variation" value="<?php echo $variation->value; ?>">
+						<input type="text" name="variation[]" class="ab-press-variation variation" value="<?php echo $variation->value; ?>">
 						<label class="ab-press-class-label" for="class[]">Element Class</label>
 						<input type="text" name="class[]" class="ab-press-class" value="<?php echo $variation->class; ?>">
 					<?php elseif ($variation->type == "html"): ?>
 						<label class="ab-press-variation-label" for="variation[]">Mark Up</label>
-						<textarea name="variation[]" class="ab-press-variation"><?php echo $variation->value; ?></textarea>
+						<textarea name="variation[]" class="ab-press-variation variation"><?php echo $variation->value; ?></textarea>
 						<label class="ab-press-class-label ab-is-html" for="class[]">Element Class</label>
 						<input type="text" name="class[]" class="ab-press-class ab-is-html" value="<?php echo $variation->class; ?>">
 					<?php else: ?>
@@ -177,7 +180,7 @@ if(isset($_POST['update']))
 						<a class="delete-button as-remove-img" href="#">Remove</a>
 						<input type="file" name="variationFile[]"  class="ab-press-file ab-hide-file">
 						<label class="ab-press-class-label" for="class[]">Element Class</label>
-						<input type="text" name="class[]" class="ab-press-class" value="<?php echo $variation->class; ?>">
+						<input type="text" name="class[]" class="ab-press-class variationFile" value="<?php echo $variation->class; ?>">
 					<?php endif; ?>
 
 					

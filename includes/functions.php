@@ -1,12 +1,12 @@
 <?php 
 
 
-function storeExperiment($experiment, $files = null)
+function ab_press_storeExperiment($experiment, $files = null)
 {
 	global $wpdb;
 
 	$experiment = json_decode(json_encode($experiment), FALSE);
-	createMessage("There was an issue saving your experiment please try again");
+	ab_press_createMessage("There was an issue saving your experiment please try again");
 
 	if(!wp_verify_nonce( $experiment->_wpnonce, 'abpo-new-experiment' )) return false;	
 	$status = (date("Y-m-d", strtotime($experiment->startDate))  > date("Y-m-d") ) ? 'paused' : "running";
@@ -59,37 +59,38 @@ function storeExperiment($experiment, $files = null)
 		$row = $wpdb->insert( ABPressOptimizer::get_table_name('variations') , array(
 			'experiment_id' => $id,
 			'type' => $experiment->type[$i],
+			'name' => $experiment->variationName[$i] ,
 			'value' => $value ,
 			'class' => $experiment->class[$i],
 			'date_created' => date('Y-m-d H:i:s')
 		));
 	}
 
-	createMessage("Your experiment has beeb created succesfully!");
+	ab_press_createMessage("Your experiment has beeb created succesfully!");
 
 	return true;
 }
 
-function updateExperiment($experiment, $files = null)
+function ab_press_updateExperiment($experiment, $files = null)
 {
 	global $wpdb;
 	$experiment = json_decode(json_encode($experiment), FALSE);
-	createMessage("There was an issue updating your experiment please try again");
+	ab_press_createMessage("There was an issue updating your experiment please try again");
 
 	if(!wp_verify_nonce( $experiment->_wpnonce, 'abpo-new-experiment' )) return false;	
 	$status = (date("Y-m-d", strtotime($experiment->startDate))  > date("Y-m-d") ) ? 'paused' : "running";
 
-	// $row = $wpdb->update( ABPressOptimizer::get_table_name('experiment'), array( 
-	// 		'name' => $wpdb->escape($experiment->name),
-	// 		'description' => $wpdb->escape($experiment->description),
-	// 		'status' => $status ,
-	// 		'start_date' => date("Y-m-d", strtotime($experiment->startDate)) ,
-	// 		'end_date' => date("Y-m-d", strtotime($experiment->endDate)),
-	// 		'goal' => $wpdb->escape($experiment->goal),
-	// 		'goal_type' => $experiment->goalTrigger,
-	// 		'url' => $experiment->url),
-	// 		array( 'id' => $experiment->id )
-	// );
+	$row = $wpdb->update( ABPressOptimizer::get_table_name('experiment'), array( 
+			'name' => $wpdb->escape($experiment->name),
+			'description' => $wpdb->escape($experiment->description),
+			'status' => $status ,
+			'start_date' => date("Y-m-d", strtotime($experiment->startDate)) ,
+			'end_date' => date("Y-m-d", strtotime($experiment->endDate)),
+			'goal' => $wpdb->escape($experiment->goal),
+			'goal_type' => $experiment->goalTrigger,
+			'url' => $experiment->url),
+			array( 'id' => $experiment->id )
+	);
 
 	$id =  $experiment->id;
 	$currImage = 0;
@@ -107,50 +108,76 @@ function updateExperiment($experiment, $files = null)
 	      'size'     => $files['size'][$key]
 	    );
 	  }
-	}
-
-	print_r($experiment);
-	
-	echo "<br>";
+	}	
 
 	for ($i=0; $i < count($experiment->type); $i++) { 
-
-		if($experiment->type[$i] == "img" ){
+		if($experiment->delete[$i] == "true")
+		{
+			$wpdb->delete( ABPressOptimizer::get_table_name('variations'), array( 'id' => $experiment->vId[$i] ) );
+		}
+		elseif($experiment->type[$i] == "img" ){
 			if(!$experiment->vId[$i])
 			{
+				$isNew = true;
 				$overide = array("test_form" => false);
 				$path = wp_handle_upload($file[$currImage], $overide);
 				++$currImage;
 				$value = $path['url'];
-				print_r('New File');
-			}	
+			}
+			else
+			{
+				$isNew = false;
+				$overide = array("test_form" => false);
+				$path = wp_handle_upload($file[$currImage], $overide);
+				++$currImage;
+				$value = $path['url'];
+			}
+		}
+		elseif(empty($experiment->vId[$i]))
+		{
+			$isNew = true;
+			$value = $experiment->variation[$currValue];
+			++$currValue;
 		}
 		else 
 		{
-			print_r($currValue . '<br>');
+			$isNew = false;
 			$value = $experiment->variation[$currValue];
 			++$currValue;
 		}
 
-		// $row = $wpdb->insert( ABPressOptimizer::get_table_name('variations') , array(
-		// 	'experiment_id' => $id,
-		// 	'type' => $experiment->type[$i],
-		// 	'value' => $value ,
-		// 	'class' => $experiment->class[$i],
-		// 	'date_created' => date('Y-m-d H:i:s')
-		// ));
+		if($isNew)
+		{
+			$row = $wpdb->insert( ABPressOptimizer::get_table_name('variations') , array(
+				'experiment_id' => $id,
+				'type' => $experiment->type[$i],
+				'value' => $value ,
+				'class' => $experiment->class[$i],
+				'date_created' => date('Y-m-d H:i:s')
+			));
+		}
+		elseif(!$isNew)
+		{
+			$row = $wpdb->update( ABPressOptimizer::get_table_name('variations'), array( 
+				'type' => $experiment->type[$i],
+				'name' => $experiment->variationName[$i] ,
+				'value' => $value ,
+				'class' => $experiment->class[$i]),
+				array( 'id' => $experiment->vId[$i] )
+			);	
+		}
+
 	}
-	exit();
 	
-	createMessage("Your experiment has beeb updated succesfully!");
+	ab_press_createMessage("Your experiment has been updated succesfully!");
 	return true;
 }
 
-function getExperiment($id){
+function ab_press_getExperiment($id){
 	global $wpdb;
 	$table = ABPressOptimizer::get_table_name('experiment');
 	$table2 = ABPressOptimizer::get_table_name('variations');
-	$query = "SELECT * FROM $table Where id = $id";
+	$query = "SELECT * FROM $table WHERE id = $id";
 	$query2 = "SELECT * FROM $table2";
 	$result = $wpdb->get_row($query, OBJECT );
 	$variations = $wpdb->get_results($query2, OBJECT );
@@ -166,7 +193,7 @@ function getExperiment($id){
 	return $result;
 }
 
-function getAllExperiment($offset = null, $limit = null){
+function ab_press_getAllExperiment($offset = null, $limit = null){
 	global $wpdb;
 	$table = ABPressOptimizer::get_table_name('experiment');
 	$table2 = ABPressOptimizer::get_table_name('variations');
@@ -189,7 +216,7 @@ function getAllExperiment($offset = null, $limit = null){
 	return $results;
 }
 
-function getTotalConvertions($experiment)
+function ab_press_getTotalConvertions($experiment)
 {
 	$total = $experiment->original_convertions;
 
@@ -200,7 +227,7 @@ function getTotalConvertions($experiment)
 	return $total;
 }
 
-function getTotalVisitors($experiment)
+function ab_press_getTotalVisitors($experiment)
 {
 	$total = $experiment->original_visits;
 
@@ -211,20 +238,25 @@ function getTotalVisitors($experiment)
 	return $total;
 }
 
-function getConvertionRate( $convertions , $total)
+function ab_press_getConvertionRate( $convertions , $total, $isPercent = true)
 {
-	return round(($convertions/$total) * 100, 2);
+	if($isPercent )
+		return round(($convertions/$total) * 100, 2);
+	else
+		return $convertions/$total;
 }
 
-//Is not working check total vs passing %
-function getConfidenceInterval($convertions , $total)
+function ab_press_getConfidenceInterval($convertions , $total, $isPercent = true)
 {
-	$rate = $convertions/$total;
-	$rate = sqrt($rate * (1-$rate)/$total);
-	return round(($rate )*100, 2);
+	$rate = ab_press_getConvertionRate($convertions, $total, false);
+	$se = sqrt(($rate * (1-$rate))/$total) * 1.96;
+	if($isPercent)
+		return round($se * 100 , 2);
+	else
+		return $se;
 }
 
-function getImprovement($controrl, $test)
+function ab_press_getImprovement($controrl, $test)
 {
 	if ($controrl == 0) { return 0; }
 	$imporvement = round((($controrl - $test)/$controrl) *  -100, 2);
@@ -236,42 +268,101 @@ function getImprovement($controrl, $test)
 	return $imporvement;
 }
 
-function getSignificance($original_rate, $controrlInterval, $variation_rate, $variationInterval){
-	$base = sqrt(pow($controrlInterval, 2) + pow($variationInterval, 2));
 
-	if ($base == 0) { return 0; }
-	$zscore = ($original_rate - $variation_rate)/$base;
-	return round(cumnormdist($zscore )* 100, 2) ;
-}
-
-function cumnormdist($x)
+function ab_press_getPlotControlData($experiment)
 {
-  $b1 =  0.319381530;
-  $b2 = -0.356563782;
-  $b3 =  1.781477937;
-  $b4 = -1.821255978;
-  $b5 =  1.330274429;
-  $p  =  0.2316419;
-  $c  =  0.39894228;
+	$rate = ab_press_getConvertionRate($experiment->original_convertions, $experiment->original_visits, false);
+	$variance = 1.282*( sqrt(($rate * (1-$rate))/$experiment->original_visits));
+	$variance95 = 1.96*( sqrt(($rate * (1-$rate))/$experiment->original_visits));
+	
+	$upper = $rate + $variance;
+	$lower= $rate- $variance;
 
-  if($x >= 0.0) {
-      $t = 1.0 / ( 1.0 + $p * $x );
-      return (1.0 - $c * exp( -$x * $x / 2.0 ) * $t *
-      ( $t *( $t * ( $t * ( $t * $b5 + $b4 ) + $b3 ) + $b2 ) + $b1 ));
-  }
-  else {
-      $t = 1.0 / ( 1.0 - $p * $x );
-      return ( $c * exp( -$x * $x / 2.0 ) * $t *
-      ( $t *( $t * ( $t * ( $t * $b5 + $b4 ) + $b3 ) + $b2 ) + $b1 ));
-    }
+	$upper95 = $rate + $variance95;
+	$lower95 = $rate - $variance95;
+
+	$plotPoints = [($lower *100 ) - 1, $lower *100 , $rate *100 , $upper  *100 , ($upper *100 ) + 1 ];
+
+	return implode(", ", $plotPoints);
 }
 
-function createMessage($message)
+
+
+function ab_press_getPlotVariationData($variation)
+{
+	$rate = ab_press_getConvertionRate($variation->convertions, $variation->visits, false);
+	$variance = 1.282*( sqrt(($rate * (1-$rate))/$variation->visits));
+	$variance95 = 1.96*( sqrt(($rate * (1-$rate))/$variation->visits));
+	
+	$upper = $rate + $variance;
+	$lower= $rate- $variance;
+
+	$upper95 = $rate + $variance95;
+	$lower95 = $rate - $variance95;
+
+	$plotPoints = [($lower *100 ) - 1, $lower *100 , $rate *100 , $upper  *100 , ($upper *100 ) + 1 ];
+
+	return implode(", ", $plotPoints);
+}
+
+function ab_press_experimentWinner($experiment){
+	$winnerAmount = 0;
+
+	foreach ($experiment->variations as $variation) {
+		$significance =  ab_press_getSignificance($experiment, $variation );
+
+		if( $significance  > $winnerAmount)
+		{
+			$winnerAmount = $significance;
+			$winner = $variation;
+		}
+	}
+
+	if($winnerAmount <= 0) return "";
+
+	$original_rate = ab_press_getConvertionRate($experiment->original_convertions,$experiment->original_visits);
+	$variation_rate = ab_press_getConvertionRate($winner->convertions,$winner->visits);
+	$improvement = ab_press_getImprovement($original_rate, $variation_rate);
+
+	return "Test <strong>". ucwords($winner->name) . "</strong> is beating out the control by <strong>$improvement%</strong>!";
+}
+
+function ab_press_getSignificance($original, $variation){
+	if($variation->visits == 0) return 0;
+
+	$original_rate = ab_press_getConvertionRate($original->original_convertions, $original->original_visits, false);
+	$variation_rate = ab_press_getConvertionRate($variation->convertions, $variation->visits, false);
+
+	$original_se= ab_press_getConfidenceInterval($original->original_convertions, $original->original_visits, false);
+	$variation_se = ab_press_getConfidenceInterval($variation->convertions, $variation->visits, false);
+
+	$zscore = ab_press_normalcdf($original_rate, $original_se, $variation_rate );
+	return round($zscore *100, 2);
+}
+
+function ab_press_normalcdf($mean, $sigma, $to) {
+	$z = ($to-$mean)/sqrt(2*$sigma*$sigma);
+	$t = 1/(1+0.3275911*abs($z));
+	$a1 =  0.254829592;
+	$a2 = -0.284496736;
+	$a3 =  1.421413741;
+	$a4 = -1.453152027;
+	$a5 =  1.061405429;
+	$erf = 1-((((($a5*$t + $a4)*$t) + $a3)*$t + $a2)*$t + $a1)*$t*exp(-$z*$z);
+	$sign = 1;
+	if($z < 0)
+	{
+		$sign = -1;
+	}
+	return (1/2)*(1+$sign*$erf);
+}
+
+function ab_press_createMessage($message)
 {
 	$_SESSION['message'] = $message;
 }
 
-function deleteMessage()
+function ab_press_deleteMessage()
 {
 	$_SESSION['message'] = null;
 }
