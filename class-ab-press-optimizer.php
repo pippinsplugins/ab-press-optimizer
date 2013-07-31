@@ -73,7 +73,7 @@ class ABPressOptimizer {
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_scripts' ) );
 
 		// Load public-facing style sheet and JavaScript.
-		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_styles' ) );
+		add_action( 'x', array( $this, 'enqueue_styles' ) );
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
 
 		// Define custom functionality. Read more about actions and filters: http://codex.wordpress.org/Plugin_API#Hooks.2C_Actions_and_Filters
@@ -82,6 +82,9 @@ class ABPressOptimizer {
 
 		// Add Experiment Link to plugin page
 		add_filter('plugin_action_links',  array( $this, 'plugin_action_links') , 10, 2);
+
+		//Create ShortCode
+		add_shortcode('abPress', array( $this, 'ab_press_shortcode'));
 	}
 
 	/**
@@ -121,7 +124,6 @@ class ABPressOptimizer {
 	 */
 	public function deactivate( $network_wide ) {
 		delete_option('ab_press_optimizer_version');
-		//check for multisite
 	}
 
 	/**
@@ -139,6 +141,8 @@ class ABPressOptimizer {
 	
 		$this->create_experiment_table();
 		$this->create_variations_table();
+
+		$this->cronJob();
 	}
 
 	/**
@@ -349,6 +353,15 @@ class ABPressOptimizer {
 	 *
 	 * @since    1.0.0
 	 */
+	public  function display_export_experiment() {
+		include_once( 'views/export.php' );
+	}
+
+	/**
+	 * Render edit experiment page for this plugin.
+	 *
+	 * @since    1.0.0
+	 */
 	public  function display_edit_experiment() {
 		include_once( 'views/edit.php' );
 	}
@@ -481,4 +494,135 @@ class ABPressOptimizer {
 		return strtolower($wpdb->get_var("SHOW TABLES LIKE '$table_name'")) == strtolower($table_name);
 	}
 
+	/**
+	 * Setup cron job
+	 */
+	private function cronJob(){
+		$this->update_experiment_status();
+		if( !wp_next_scheduled( 'ab_press_experiment_refresh' ) ) {  
+		    wp_schedule_event( time(), 'twicedaily', 'ab_press_experiment_refresh' );  
+		} 
+
+		add_action( 'ab_press_experiment_refresh', array( $this, 'update_experiment_status') ); 
+
+	}
+
+	/**
+	 * Run update status via cron job
+	 */
+	private function update_experiment_status(){
+		$experiments = ab_press_getAllActiveExperiments();
+		foreach ($experiments as $experiment) {
+			$startDate = $experiment->start_date;
+			$endDate = $experiment->end_date;
+			$today = date("Y-m-d", strtotime($experiment->start_date));
+
+			if($today > $endDate)
+				ab_press_updateExperimentStatus($experiment->id, 'complete');
+			elseif($startDate > $today)
+				ab_press_updateExperimentStatus($experiment->id, 'paused');
+		}
+	}
+
+	/**
+	 * Ab Press ShortCode
+	 */
+	public function ab_press_shortcode( $atts, $content) {
+
+		extract( shortcode_atts( array(
+		'id' => ''), $atts ) );
+
+		if(!isset($id)) return $content;
+		return ab_press_optimizer($id , $content);
+	}
+
+}
+
+function ab_press_optimizer($id, $content)
+{
+	$experiment = ab_press_getExperiment($id);
+	$tagTypes = ['a', 'p', 'div', 'span', 'input', 'img'  ];
+	$tag = '';
+	$href = '';
+	$class = '';
+	$title = '';
+	$alt = '';
+	$href = '';
+	$value = '';
+	$divId = '';
+	$name = '';
+	$src = '';
+	$type = '';
+	$result = "";
+	$tagContent = "";
+
+	preg_match_all('/(alt|title|src|href|class|id|value|name)=("[^"]*")/i', $content, $attributes);
+
+	foreach ($tagTypes as $tagType) {
+		if(preg_match('%(^<'.$tagType.'[^>]*>.*?</'.$tagType.'>)%i', $content, $tempTag) || preg_match('#<'.$tagType.'[^>]*>#i', $content, $tempTag) || preg_match('#<'.$tagType.'[^>]*>#i', $content, $tempTag) )
+		{
+			$tag = $tagType;
+		}
+	}
+
+	if($tag != "img" && $tag != "input")
+	{
+	    if(preg_match("/<$tag ?.*>(.*)<\/$tag>/", $content, $matches))
+			$tagContent = $matches[1];
+	}
+	array_unshift($experiment->variations, $tagContent);
+	$randomVariation = rand(0 , count($experiment->variations)-1) ;
+	print_r($experiment->variations[$randomVariation]);
+
+	for ($i=0; $i < count($attributes[1]); $i++) { 
+		switch (strtolower ($attributes[1][$i])) {
+			case 'href':
+				$href = $attributes[0][$i];
+			break;
+			case 'class':
+				$class = $attributes[2][$i];
+			break;
+			case 'title':
+				$title = $attributes[0][$i];
+			break;
+			case 'alt':
+				$alt = $attributes[0][$i];
+			break;
+			case 'value':
+				$value = $attributes[0][$i];
+			break;
+			case 'name':
+				$name = $attributes[0][$i];
+			break;
+			case 'src':
+				$src = $attributes[0][$i];
+			break;
+			case 'id':
+				$divId = $attributes[0][$i];
+			break;
+			case 'type':
+				$type = $attributes[0][$i];
+			break;
+		}
+	}
+
+	if($tag == "img")
+	{
+		if(!empty($class))
+			$class = "class='$class'";
+		$result = "<img $src $src  $class $alt $divId $title />";
+	}
+	elseif ($tag == "input") {
+		if(!empty($class))
+			$class = "class='$class'";
+		$result = "<input $type  $class  $divId  $value/>";
+	}
+	else
+	{
+		if(!empty($class))
+			$class = "class='$class'";
+		$result = "<$tag  $title  $class  $divId>$tagContent</$tag>";
+	}
+	
+	return $content;
 }

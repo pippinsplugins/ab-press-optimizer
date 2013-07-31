@@ -1,6 +1,10 @@
 <?php 
 
-
+/**
+ * Store a new experiment and it's variations
+ *
+ * @return boolean
+ */
 function ab_press_storeExperiment($experiment, $files = null)
 {
 	global $wpdb;
@@ -71,6 +75,11 @@ function ab_press_storeExperiment($experiment, $files = null)
 	return true;
 }
 
+/**
+ * Update a new experiment and it's variations
+ *
+ * @return boolean
+ */
 function ab_press_updateExperiment($experiment, $files = null)
 {
 	global $wpdb;
@@ -173,6 +182,11 @@ function ab_press_updateExperiment($experiment, $files = null)
 	return true;
 }
 
+/**
+ * Get an experiment by id
+ *
+ * @return boolean
+ */
 function ab_press_getExperiment($id){
 	global $wpdb;
 	$table = ABPressOptimizer::get_table_name('experiment');
@@ -216,6 +230,51 @@ function ab_press_getAllExperiment($offset = null, $limit = null){
 	return $results;
 }
 
+/**
+ * Get All active experiments
+ *
+ * @return results
+ */
+function ab_press_getAllActiveExperiments($withVariations = false){
+	global $wpdb;
+	$table = ABPressOptimizer::get_table_name('experiment');
+	$table2 = ABPressOptimizer::get_table_name('variations');
+	$query = "SELECT * FROM $table WHERE status = 'running' Order By date_created DESC";
+	$query2 = "SELECT * FROM $table2";
+	$results = $wpdb->get_results($query, OBJECT );
+
+	if($withVariations)
+	{
+		$variations = $wpdb->get_results($query2, OBJECT );
+		foreach ($results as $result) {
+			$result->variations = []; 
+			foreach ($variations as $variation) {
+				if($result->id == $variation->experiment_id)
+					$result->variations[] = $variation;
+			}
+		}
+	}
+
+	return $results;
+}
+
+/**
+ * Update status of an experiment
+ */
+function ab_press_updateExperimentStatus($id, $status){
+	global $wpdb;
+
+	$wpdb->update( ABPressOptimizer::get_table_name('experiment'), array( 
+			'status' => $status),
+			array( 'id' => $id )
+	);
+}
+
+/**
+ * Get Total Convertions
+ *
+ * @return number
+ */
 function ab_press_getTotalConvertions($experiment)
 {
 	$total = $experiment->original_convertions;
@@ -227,6 +286,11 @@ function ab_press_getTotalConvertions($experiment)
 	return $total;
 }
 
+/**
+ * Get Total Visitors
+ *
+ * @return number
+ */
 function ab_press_getTotalVisitors($experiment)
 {
 	$total = $experiment->original_visits;
@@ -238,6 +302,11 @@ function ab_press_getTotalVisitors($experiment)
 	return $total;
 }
 
+/**
+ * Get Convertion Rate
+ *
+ * @return number
+ */
 function ab_press_getConvertionRate( $convertions , $total, $isPercent = true)
 {
 	if($isPercent )
@@ -246,6 +315,11 @@ function ab_press_getConvertionRate( $convertions , $total, $isPercent = true)
 		return $convertions/$total;
 }
 
+/**
+ * Get Confinece Interval (Standard Error)
+ *
+ * @return number
+ */
 function ab_press_getConfidenceInterval($convertions , $total, $isPercent = true)
 {
 	$rate = ab_press_getConvertionRate($convertions, $total, false);
@@ -256,6 +330,11 @@ function ab_press_getConfidenceInterval($convertions , $total, $isPercent = true
 		return $se;
 }
 
+/**
+ * Get Variation Improvement
+ *
+ * @return number
+ */
 function ab_press_getImprovement($controrl, $test)
 {
 	if ($controrl == 0) { return 0; }
@@ -268,7 +347,11 @@ function ab_press_getImprovement($controrl, $test)
 	return $imporvement;
 }
 
-
+/**
+ * Get Plot Points for Control
+ *
+ * @return string
+ */
 function ab_press_getPlotControlData($experiment)
 {
 	$rate = ab_press_getConvertionRate($experiment->original_convertions, $experiment->original_visits, false);
@@ -286,8 +369,11 @@ function ab_press_getPlotControlData($experiment)
 	return implode(", ", $plotPoints);
 }
 
-
-
+/**
+ * Get Plot Points for Variations
+ *
+ * @return string
+ */
 function ab_press_getPlotVariationData($variation)
 {
 	$rate = ab_press_getConvertionRate($variation->convertions, $variation->visits, false);
@@ -305,6 +391,12 @@ function ab_press_getPlotVariationData($variation)
 	return implode(", ", $plotPoints);
 }
 
+
+/**
+ * Get Experiment Winner
+ *
+ * @return string
+ */
 function ab_press_experimentWinner($experiment){
 	$winnerAmount = 0;
 
@@ -327,6 +419,12 @@ function ab_press_experimentWinner($experiment){
 	return "Test <strong>". ucwords($winner->name) . "</strong> is beating out the control by <strong>$improvement%</strong>!";
 }
 
+
+/**
+ * Get Statistical Significance
+ *
+ * @return number
+ */
 function ab_press_getSignificance($original, $variation){
 	if($variation->visits == 0) return 0;
 
@@ -340,6 +438,11 @@ function ab_press_getSignificance($original, $variation){
 	return round($zscore *100, 2);
 }
 
+/**
+ * Normalize Data
+ *
+ * @return number
+ */
 function ab_press_normalcdf($mean, $sigma, $to) {
 	$z = ($to-$mean)/sqrt(2*$sigma*$sigma);
 	$t = 1/(1+0.3275911*abs($z));
@@ -357,11 +460,18 @@ function ab_press_normalcdf($mean, $sigma, $to) {
 	return (1/2)*(1+$sign*$erf);
 }
 
+
+/**
+ * Create a flash message
+ */
 function ab_press_createMessage($message)
 {
 	$_SESSION['message'] = $message;
 }
 
+/**
+ * Delete a flash message
+ */
 function ab_press_deleteMessage()
 {
 	$_SESSION['message'] = null;

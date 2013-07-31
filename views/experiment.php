@@ -65,7 +65,7 @@
 	?>
 
 	<?php
-		foreach ($experiments as $experiment) {
+		foreach (ab_press_getAllActiveExperiments(true) as $experiment) {
 			if($experiment->status == "running")
 			{
 				$featuredExperiment = $experiment;
@@ -81,7 +81,7 @@
 			<li class="totalVisitore"><span>Total Visitors</span><?php echo number_format($totalVisitor = ab_press_getTotalVisitors($featuredExperiment)); ?></li>
 			<li class="convertions"><span>Convertions</span><?php echo number_format($totalConvertions = ab_press_getTotalConvertions($featuredExperiment));  ?></li>
 			<li class="converstionRate"><span>Convertion Rate</span>
-				<?php echo ($totalConvertions == 0) ? "0%" : ab_press_getConvertionRate($totalConvertions,$totalVisitor);?>%
+				<?php echo ($totalConvertions == 0) ? "0" : ab_press_getConvertionRate($totalConvertions,$totalVisitor);?>%
 			</li>
 			<li class="variations"><span>Variations</span><?php echo count($featuredExperiment->variations); ?></li>
 		</ul>
@@ -92,6 +92,7 @@
 	<table class="widefat">
 		<thead>
 		    <tr>
+		        <th>ID</th>
 		        <th>Name</th>
 		        <th>Visitors</th>       
 		        <th>Convertions</th>
@@ -103,6 +104,7 @@
 		</thead>
 		<tfoot>
 		     <tr>
+		        <th>ID</th>
 		        <th>Name</th>
 		        <th>Visitors</th>       
 		        <th>Convertions</th>
@@ -117,6 +119,7 @@
 		<?php foreach ($experiments as $experiment): ?>
 
 		<tr>
+			<th><?php echo ucwords($experiment->id); ?></th>
 			<th><a href="admin.php?page=abpo-details&eid=<?php echo $experiment->id; ?>"><?php echo ucwords($experiment->name); ?></a></th>
 			<th><?php echo number_format($totalVariationVisitor = ab_press_getTotalVisitors($experiment)); ?></th>
 			<th><?php echo number_format($totalVariationConvertion = ab_press_getTotalConvertions($experiment));  ?></th>
