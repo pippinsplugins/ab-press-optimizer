@@ -270,6 +270,26 @@ function ab_press_updateExperimentStatus($id, $status){
 	);
 }
 
+function ab_press_updateImpression($id, $type, $count){
+	global $wpdb;
+	$count = $count + 1;
+
+	if($type == 'control')
+	{
+		$wpdb->update( ABPressOptimizer::get_table_name('experiment'), array( 
+				'original_visits' => $count),
+				array( 'id' => $id )
+		);
+	}
+	else
+	{
+		$wpdb->update( ABPressOptimizer::get_table_name('variations'), array( 
+				'visits' => $count),
+				array( 'id' => $id )
+		);
+	}
+}
+
 /**
  * Get Total Convertions
  *
@@ -460,6 +480,163 @@ function ab_press_normalcdf($mean, $sigma, $to) {
 	return (1/2)*(1+$sign*$erf);
 }
 
+/**
+ * Create markup for experiment also used inside of code
+ */
+function ab_press_optimizer($id, $content)
+{
+	//Select Experiment
+	$experiment = ab_press_getExperiment($id);
+	$control = (object) array('id'=>$experiment->id, 'type'=>'control', 'value' => $content, 'class' => '');
+	array_unshift($experiment->variations, $control);
+
+	//Select Random Variation
+	$randomVariation = rand(0 , count($experiment->variations)-1) ;
+	$variation = $experiment->variations[$randomVariation];
+
+	$tag = ab_press_getTag($content);
+	$attributes = ab_press_getAttributes($content, $tag, $variation);
+
+	if($variation->type == "control")
+	{
+		ab_press_updateImpression($id, 'control', $experiment->original_visits);
+		return ab_press_createControl($content, $tag, $attributes);
+	}
+	else
+	{
+		ab_press_updateImpression($variation->id, 'variation', $variation->visits);
+		return ab_press_createVariation($variation, $tag, $attributes);
+	}
+}
+
+/**
+ * Get Html Tag
+ *
+ * @return String
+ */
+function ab_press_getTag($content)
+{
+	$tagTypes = ['a', 'p', 'div', 'span', 'section', 'input', 'img'  ];
+	$tag = '';
+
+	foreach ($tagTypes as $tagType) {
+		if(preg_match('%(^<'.$tagType.'[^>]*>.*?</'.$tagType.'>)%i', $content, $tempTag) || preg_match('#<'.$tagType.'[^>]*>#i', $content, $tempTag) || preg_match('#<'.$tagType.'[^>]*>#i', $content, $tempTag) )
+		{
+			$tag = $tagType;
+		}
+	}
+
+	return $tag;
+}
+
+/**
+ * Get Attributes from html
+ *
+ * @return String
+ */
+function ab_press_getAttributes($content, $tag, $variation)
+{
+	$attributes = "";
+
+	if(!empty($tag) && preg_match_all('/(alt|type|title|src|href|class|id|value|name)=("[^"]*")/i', $content, $elemtAttributes))
+	{
+		$attr = [];
+		for ($i=0; $i < count($elemtAttributes[1]); $i++) { 
+			$tempAttr = str_replace('"',"", $elemtAttributes[2][$i]);
+			$tempAttr = str_replace("'","", $tempAttr);
+			$attr[strtolower($elemtAttributes[1][$i])] = $tempAttr;
+		}
+
+
+		if(isset($attr['class']))
+			$attr['class'] = (string) $attr['class'] . ' ab-press-hock ' . $variation->class;
+		else
+			$attr['class'] = 'ab-press-hock';
+
+		if($variation->type == "img")
+			$attr['src'] = $variation->value; 
+
+		foreach ($attr as $key => $value) {
+			$attributes .= ( ' '. $key . '="' .$value .'" ');
+		}
+	}
+
+
+
+	return $attributes;
+}
+
+/**
+ * Get content from html
+ *
+ * @return String
+ */
+function ab_press_getContent($content, $tag){
+	$tagContent = "";
+
+	if($tag != "img" && $tag != "input")
+	{
+	    if(preg_match("/<".$tag."[^>]*>(.*?)<\/".$tag.">/is", $content, $matches))
+	    {
+	    	$tagContent = $matches[1];
+	    }
+	}
+
+	return $tagContent;
+}
+
+/**
+ * Create a control markup
+ *
+ * @return String
+ */
+function ab_press_createControl($content, $tag, $attributes)
+{
+	$tagContent = ab_press_getContent($content, $tag);
+
+	if($tag == "img")
+	{
+		$result = "<img $attributes />";
+	}
+	elseif ($tag == "input") 
+	{
+		$result = "<input $attributes />";
+	}
+	else
+	{
+		$result = "<$tag $attributes>$tagContent</$tag>";
+	}
+
+	return $result;
+}
+
+/**
+ * Create a variation markup
+ *
+ * @return String
+ */
+function ab_press_createVariation($variation, $tag, $attributes){
+	
+	if($variation->type == "html")
+	{
+		$html = $variation->value;
+		$htmlTag = ab_press_getTag($html);
+		$htmlAttributes = ab_press_getAttributes($html, $tag, $variation);
+		$htmlContent = ab_press_getContent($html, $htmlTag);
+		return "<$htmlTag $htmlAttributes>$htmlContent</$htmlTag>";
+	}
+	elseif($variation->type == "img")
+	{
+		return "<img $attributes />";
+	}
+	else
+	{
+		if ($tag == "input") 
+			return "<input $attributes />";
+		else
+			return "<$tag $attributes>$variation->value</$tag>";
+	}
+}
 
 /**
  * Create a flash message

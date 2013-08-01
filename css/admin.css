@@ -34,11 +34,11 @@
 	text-align: center;
 	font-weight: bold;
 	padding: 20px 0;
-	border-radius: 8px;
+	border-radius: 5px;
 	font-size: 30px;
 	line-height: 24px;
 	color: #fff;
-	text-shadow:1px 1px 1px #000000;
+	text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
 }
 
 .ab-press-dashboard li span{
@@ -48,19 +48,19 @@
 }
 
 .totalVisitore{
-	background: #e84632;
+	background: #24c8f4;
 }
 
 .convertions{
-	background: #00bff3;
+	background: #ff5a4d;
 }
 
 .converstionRate{
-	background: #c22f1d;
+	background: #24c8f4;
 }
 
 .variations{
-	background: #0189ae;
+	background: #ff5a4d;
 }
 
 .experimentForm{
