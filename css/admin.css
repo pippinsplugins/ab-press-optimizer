@@ -3,12 +3,20 @@
 	margin-top: 15px;
 }
 
+.ab-press-settings{
+	margin-top: 25px;
+}
+
 #icon-ab-press-optimizer{
 	  background: transparent url( '../assets/abPress-icon-page.png' ) no-repeat;
 }
 
 .ab-press-nav{
 	margin: 10px 0;
+}
+
+.ab-press-experimentForm{
+	margin-top: 25px;
 }
 
 .ab-current-test{
@@ -197,4 +205,9 @@ textarea.ab-press-variation  {
 
 .ab-column-content{
 	padding-right: 15px;
+}
+
+.ab-press-winner{
+	font-size: 16px;
+	text-align: right;
 }

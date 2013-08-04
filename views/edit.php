@@ -11,29 +11,10 @@
  * @copyright 2013 Ivan Lopez
  */
 ?>
-
-<?php
-
-if(isset($_POST['update']))
-	{
-		if(ab_press_updateExperiment($_POST, $_FILES ) )
-		{
-			header( 'Location: admin.php?page=abpo-experiment' ) ;
-			exit();
-		}
-	}
-
-	$experiment = ab_press_getExperiment($_GET['eid']);
-	if(!$experiment)
-	{
-		ab_press_createMessage("The experiment you selected does not exist!|ERROR");
-		header( 'Location: admin.php?page=abpo-experiment' ) ;
-		exit();
-	}
-?>
 <?php 
-		
+		$experiment = ab_press_getExperiment($_GET['eid']);
 	?>
+
 
 <div class="wrap">
 
@@ -42,7 +23,7 @@ if(isset($_POST['update']))
 	</div>
 
 	<?php screen_icon('ab-press-optimizer'); ?>
-	<h2><?php echo esc_html( get_admin_page_title() ); ?></h2>
+	<h2>Edit Experiment</h2>
 
 	<p>Nam vitae urna urna. Quisque lectus lacus, hendrerit eget lobortis at, aliquam nec dolor. Integer tincidunt pharetra sapien non volutpat. Pellentesque quis egestas dolor, vitae molestie tortor. Vestibulum eget odio tortor. Suspendisse euismod aliquet ante et congue. Vivamus mattis ac urna a semper. Mauris tempor neque non tristique tristique. Aliquam sit amet mi et mi dictum condimentum pellentesque vel eros.</p>
 
@@ -178,9 +159,9 @@ if(isset($_POST['update']))
 						<label class="ab-press-variation-label" for="variation[]">Image</label>
 						<img src="<?php echo $variation->value; ?>" class="ab-image-holder">
 						<a class="delete-button as-remove-img" href="#">Remove</a>
-						<input type="file" name="variationFile[]"  class="ab-press-file ab-hide-file">
+						<input type="file" name="variationFile[]"  class="ab-press-file ab-hide-file ">
 						<label class="ab-press-class-label" for="class[]">Element Class</label>
-						<input type="text" name="class[]" class="ab-press-class variationFile" value="<?php echo $variation->class; ?>">
+						<input type="text" name="class[]" class="ab-press-class" value="<?php echo $variation->class; ?>">
 					<?php endif; ?>
 
 					

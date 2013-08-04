@@ -25,7 +25,41 @@
 		<a href="" class="nav-tab  nav-tab-active">Settings</a>
 	</h2>
 
+	<form method="post" action="options.php" class="ab-press-settings">
+		
+	<?php 
+		$license 	= get_option( 'ab_press_license_key' );
+		$status 	= get_option( 'ab_press_license_status' );
+		settings_fields('ab_press_license'); 
+	?>
 
-	<!-- TODO: Provide markup for your options page here. -->
+	<div class="ab-press-group">
+		<label class="ab-press-label" for="ab_press_license_key"><?php _e('Enter your license key'); ?> <span class="description">(required)</span></label>
+		<div class="ab-press-controls">
+			<input id="ab_press_license_key" name="ab_press_license_key" type="text" class="regular-text" value="<?php esc_attr_e( $license ); ?>" />
+		</div>
+	</div>
+	
+	<?php if( false !== $license ) { ?>
+
+		<div class="ab-press-group">
+			<label class="ab-press-label" for="name"><?php _e('Activate License'); ?><span class="description">(required)</span></label>
+			<div class="ab-press-controls">
+				<?php if( $status !== false && $status == 'valid' ) { ?>
+					<span style="color:green;"><?php _e('active'); ?></span>
+					<?php wp_nonce_field( 'edd_sample_nonce', 'edd_sample_nonce' ); ?>
+					<input type="submit" class="button-secondary" name="edd_license_deactivate" value="<?php _e('Deactivate License'); ?>"/>
+				<?php } else {
+					wp_nonce_field( 'edd_sample_nonce', 'edd_sample_nonce' ); ?>
+					<input type="submit" class="button-secondary" name="edd_license_activate" value="<?php _e('Activate License'); ?>"/>
+				<?php } ?>
+			</div>
+		</div>
+
+	<?php } ?>
+
+	<?php submit_button(); ?>
+
+</form>
 
 </div>

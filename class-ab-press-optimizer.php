@@ -73,18 +73,22 @@ class ABPressOptimizer {
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_scripts' ) );
 
 		// Load public-facing style sheet and JavaScript.
-		add_action( 'x', array( $this, 'enqueue_styles' ) );
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
 
 		// Define custom functionality. Read more about actions and filters: http://codex.wordpress.org/Plugin_API#Hooks.2C_Actions_and_Filters
-		add_action( 'TODO', array( $this, 'action_method_name' ) );
-		add_filter( 'TODO', array( $this, 'filter_method_name' ) );
+		//add_action( 'TODO', array( $this, 'action_method_name' ) );
+		//add_filter( 'TODO', array( $this, 'filter_method_name' ) );
 
 		// Add Experiment Link to plugin page
 		add_filter('plugin_action_links',  array( $this, 'plugin_action_links') , 10, 2);
 
 		//Create ShortCode
 		add_shortcode('abPress', array( $this, 'ab_press_shortcode'));
+
+		//License Code
+		add_action('admin_init', array( $this, 'ab_press_license_register_option'));
+		add_action('admin_init', array( $this, 'ab_press_activate_license'));
+		add_action('admin_init', array( $this, 'ab_press_deactivate_license'));
 	}
 
 	/**
@@ -173,14 +177,6 @@ class ABPressOptimizer {
 		wp_enqueue_script('jquery-ui-datepicker');
 	}
 
-	/**
-	 * Register and enqueue public-facing style sheet.
-	 *
-	 * @since    1.0.0
-	 */
-	public function enqueue_styles() {
-		wp_enqueue_style( $this->plugin_slug . '-plugin-styles', plugins_url( 'css/public.css', __FILE__ ), array(), $this->version );
-	}
 
 	/**
 	 * Register and enqueues public-facing JavaScript files.
@@ -188,7 +184,7 @@ class ABPressOptimizer {
 	 * @since    1.0.0
 	 */
 	public function enqueue_scripts() {
-		wp_enqueue_script( $this->plugin_slug . '-plugin-script', plugins_url( 'js/public.js', __FILE__ ), array( 'jquery' ), $this->version );
+		wp_enqueue_script( $this->plugin_slug . '-plugin-script', plugins_url( 'js/public.php', __FILE__ ), array( 'jquery' ), $this->version );
 	}
 
 	/**
@@ -199,8 +195,8 @@ class ABPressOptimizer {
 	public function add_plugin_admin_menu() {
 
 		add_menu_page(
-			__( 'A/B Press Optimizer', $this->plugin_slug ),
-			__( 'A/B Press ', $this->plugin_slug ),
+			__( 'AB Press Optimizer', $this->plugin_slug ),
+			__( 'AB Press ', $this->plugin_slug ),
 			'administrator',
 			'abpo-experiment',
 			array( $this, 'display_plugin_experiment_page' ),
@@ -210,7 +206,7 @@ class ABPressOptimizer {
 
 		add_submenu_page(
 			'abpo-experiment',
-			__( 'A/B Press Optimizer', $this->plugin_slug ),
+			__( 'AB Press Optimizer', $this->plugin_slug ),
 			__( 'Experiments', $this->plugin_slug ),
 			'administrator',
 			'abpo-experiment',
@@ -219,7 +215,7 @@ class ABPressOptimizer {
 
 		add_submenu_page(
 			'abpo-experiment',
-			__( 'A/B Press Optimizer Getting Started', $this->plugin_slug ),
+			__( 'Getting Started', $this->plugin_slug ),
 			__( 'Getting Started', $this->plugin_slug ),
 			'administrator',
 			'abpo-gettingStarted',
@@ -228,43 +224,50 @@ class ABPressOptimizer {
 
 		add_submenu_page(
 			'abpo-experiment',
-			__( 'A/B Press Optimizer Settings', $this->plugin_slug ),
+			__( 'Settings', $this->plugin_slug ),
 			__( 'Settings', $this->plugin_slug ),
 			'administrator',
 			'abpo-settings',
 			array( $this, 'display_plugin_settings' )
 		);
 
-		add_submenu_page(
+		$hook = add_submenu_page(
 			'abpo-experiment',
-			__( 'New Experiment', $this->plugin_slug ),
+			__( '', $this->plugin_slug ),
 			'New',
 			'administrator',
 			'abpo-new',
 			array( $this, 'display_new_experiment' )
 		);
 
+		//Redirects
+		add_action( 'load-ab-press_page_abpo-new', array( $this, 'new_experiment_redirect') );
+
 		add_submenu_page(
 			'abpo-experiment',
-			__( 'Detail Experiment', $this->plugin_slug ),
+			__( '', $this->plugin_slug ),
 			"Detail",
 			'administrator',
 			'abpo-details',
 			array( $this, 'display_detail_experiment' )
 		);
 
+		add_action( 'load-ab-press_page_abpo-details', array( $this, 'details_experiment_redirect') );
+
 		add_submenu_page(
 			'abpo-experiment',
-			__( 'Edit Experiment', $this->plugin_slug ),
+			__( '', $this->plugin_slug ),
 			"Edit",
 			'administrator',
 			'abpo-edit',
 			array( $this, 'display_edit_experiment' )
 		);
 
+		add_action( 'load-ab-press_page_abpo-edit', array( $this, 'edit_experiment_redirect') );
+
 		add_submenu_page(
 			'abpo-experiment',
-			__( 'Export Experiment', $this->plugin_slug ),
+			__( '', $this->plugin_slug ),
 			"Export",
 			'administrator',
 			'abpo-export',
@@ -273,8 +276,8 @@ class ABPressOptimizer {
 
 		add_submenu_page(
 			'abpo-experiment',
-			__( 'Delete Experiment', $this->plugin_slug ),
-			"Export",
+			__( '', $this->plugin_slug ),
+			"Delete",
 			'administrator',
 			'abpo-delete',
 			array( $this, 'display_delete_experiment' )
@@ -364,6 +367,70 @@ class ABPressOptimizer {
 	 */
 	public  function display_edit_experiment() {
 		include_once( 'views/edit.php' );
+	}
+
+	/**
+	 * Captures post and redirects for new experiment
+	 *
+	 * @since    1.0.0
+	 */
+	public function new_experiment_redirect() {
+       $status = get_option( 'ab_press_license_status' );
+
+		if($status != 'active')
+		{
+			ab_press_createMessage("You must activate your licence before creating experimnets: <a href='admin.php?page=abpo-settings'>Activate Licence</a>!|ERROR");
+			header( 'Location: admin.php?page=abpo-experiment' ) ;
+			exit();
+		}
+
+		if(isset($_POST['save']))
+		{
+			if(ab_press_storeExperiment($_POST, $_FILES ) )
+			{
+				header( 'Location: admin.php?page=abpo-experiment' ) ;
+				exit();
+			}
+		}
+	}
+
+	/**
+	 * Captures post and redirects for details page
+	 *
+	 * @since    1.0.0
+	 */
+	public function details_experiment_redirect() {
+    	$experiment = ab_press_getExperiment($_GET['eid']);
+		if(!$experiment)
+		{
+			ab_press_createMessage("The experiment you selected does not exist!|ERROR");
+			header( 'Location: admin.php?page=abpo-experiment' ) ;
+			exit();
+		}
+	}
+
+	/**
+	 * Captures post and redirects for details page
+	 *
+	 * @since    1.0.0
+	 */
+	public function edit_experiment_redirect() {
+      	if(isset($_POST['update']))
+		{
+			if(ab_press_updateExperiment($_POST, $_FILES ) )
+			{
+				header( 'Location: admin.php?page=abpo-experiment' ) ;
+				exit();
+			}
+		}
+
+		$experiment = ab_press_getExperiment($_GET['eid']);
+		if(!$experiment)
+		{
+			ab_press_createMessage("The experiment you selected does not exist!|ERROR");
+			header( 'Location: admin.php?page=abpo-experiment' ) ;
+			exit();
+		}
 	}
 
 	/**
@@ -498,7 +565,7 @@ class ABPressOptimizer {
 	 * Setup cron job
 	 */
 	private function cronJob(){
-		$this->update_experiment_status();
+		
 		if( !wp_next_scheduled( 'ab_press_experiment_refresh' ) ) {  
 		    wp_schedule_event( time(), 'twicedaily', 'ab_press_experiment_refresh' );  
 		} 
@@ -515,7 +582,7 @@ class ABPressOptimizer {
 		foreach ($experiments as $experiment) {
 			$startDate = $experiment->start_date;
 			$endDate = $experiment->end_date;
-			$today = date("Y-m-d", strtotime($experiment->start_date));
+			$today = date("Y-m-d");
 
 			if($today > $endDate)
 				ab_press_updateExperimentStatus($experiment->id, 'complete');
@@ -527,14 +594,114 @@ class ABPressOptimizer {
 	/**
 	 * Ab Press ShortCode
 	 */
-	public function ab_press_shortcode( $atts, $content) {
+	public function ab_press_shortcode( $atts, $content = "") {
 
 		extract( shortcode_atts( array(
 		'id' => ''), $atts ) );
 
 		if(!isset($id)) return $content;
+
 		return ab_press_optimizer($id , $content);
 	}
 
-}
+	/**
+	 * Register License option
+	 */
+	public function ab_press_license_register_option() {
+		// creates our settings in the options table
+		session_start();
+		register_setting('ab_press_license', 'ab_press_license_key',  array( $this, 'edd_sanitize_license' ));
+	}
 
+	/**
+	 * Sanitize License option
+	 */
+	public function edd_sanitize_license( $new ) {
+		$old = get_option( 'ab_press_license_key' );
+		if( $old && $old != $new ) {
+			delete_option( 'ab_press_license_status' ); // new license has been entered, so must reactivate
+		}
+		return $new;
+	}
+
+	/**
+	 * Activate License
+	 */
+	public function ab_press_activate_license() {
+
+		// listen for our activate button to be clicked
+		if( isset( $_POST['edd_license_activate'] ) ) {
+
+			// run a quick security check 
+		 	if( ! check_admin_referer( 'ab_press_nonce', 'ab_press_nonce' ) ) 	
+				return; // get out if we didn't click the Activate button
+
+			// retrieve the license from the database
+			$license = trim( get_option( 'ab_press_license_key' ) );
+				
+
+			// data to send in our API request
+			$api_params = array( 
+				'edd_action'=> 'activate_license', 
+				'license' 	=> $license, 
+				'item_name' => urlencode( AB_PRESS_ITEM_NAME ) // the name of our product in EDD
+			);
+			
+			// Call the custom API.
+			$response = wp_remote_get( add_query_arg( $api_params, AB_PRESS_STORE_URL ), array( 'timeout' => 15, 'sslverify' => false ) );
+
+			// make sure the response came back okay
+			if ( is_wp_error( $response ) )
+				return false;
+
+			// decode the license data
+			$license_data = json_decode( wp_remote_retrieve_body( $response ) );
+			
+			// $license_data->license will be either "active" or "inactive"
+
+			update_option( 'ab_press_license_status', $license_data->license );
+
+		}
+	}
+
+	/**
+	 * Deactivate License
+	 */
+	public function ab_press_deactivate_license() {
+
+		// listen for our activate button to be clicked
+		if( isset( $_POST['edd_license_deactivate'] ) ) {
+
+			// run a quick security check 
+		 	if( ! check_admin_referer( 'ab_press_nonce', 'ab_press_nonce' ) ) 	
+				return; // get out if we didn't click the Activate button
+
+			// retrieve the license from the database
+			$license = trim( get_option( 'ab_press_license_key' ) );
+				
+
+			// data to send in our API request
+			$api_params = array( 
+				'edd_action'=> 'deactivate_license', 
+				'license' 	=> $license, 
+				'item_name' => urlencode( AB_PRESS_ITEM_NAME ) // the name of our product in EDD
+			);
+			
+			// Call the custom API.
+			$response = wp_remote_get( add_query_arg( $api_params, AB_PRESS_STORE_URL ), array( 'timeout' => 15, 'sslverify' => false ) );
+
+			// make sure the response came back okay
+			if ( is_wp_error( $response ) )
+				return false;
+
+			// decode the license data
+			$license_data = json_decode( wp_remote_retrieve_body( $response ) );
+			
+			// $license_data->license will be either "deactivated" or "failed"
+			if( $license_data->license == 'deactivated' )
+				delete_option( 'ab_press_license_status' );
+
+		}
+	}
+
+}

@@ -12,18 +12,6 @@
  */
 ?>
 
-<?php
-
-if(isset($_POST['save']))
-	{
-		if(ab_press_storeExperiment($_POST, $_FILES ) )
-		{
-			header( 'Location: admin.php?page=abpo-experiment' ) ;
-			exit();
-		}
-	}
-?>
-
 <div class="wrap">
 
 	<div class="ab-press-header">
@@ -31,7 +19,7 @@ if(isset($_POST['save']))
 	</div>
 
 	<?php screen_icon('ab-press-optimizer'); ?>
-	<h2><?php echo esc_html( get_admin_page_title() ); ?></h2>
+	<h2>New Experiment</h2>
 
 	<p>Nam vitae urna urna. Quisque lectus lacus, hendrerit eget lobortis at, aliquam nec dolor. Integer tincidunt pharetra sapien non volutpat. Pellentesque quis egestas dolor, vitae molestie tortor. Vestibulum eget odio tortor. Suspendisse euismod aliquet ante et congue. Vivamus mattis ac urna a semper. Mauris tempor neque non tristique tristique. Aliquam sit amet mi et mi dictum condimentum pellentesque vel eros.</p>
 

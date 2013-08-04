@@ -15,12 +15,6 @@
 
 	<?php 
 		$experiment = ab_press_getExperiment($_GET['eid']);
-		if(!$experiment)
-		{
-			ab_press_createMessage("The experiment you selected does not exist!|ERROR");
-			header( 'Location: admin.php?page=abpo-experiment' ) ;
-			exit();
-		}
 	?>
 	
 	<?php
@@ -52,8 +46,8 @@
 		<h2>Experiment Summery</h2>
 		<ul class="ab-press-dashboard">
 			<li class="totalVisitore"><span>Total Visitors</span><?php echo number_format($totalVisitor = ab_press_getTotalVisitors($experiment)); ?></li>
-			<li class="convertions"><span>Convertions</span><?php echo number_format($totalConvertions = ab_press_getTotalConvertions($experiment));  ?></li>
-			<li class="converstionRate"><span>Convertion Rate</span>
+			<li class="convertions"><span>Total Conversions</span><?php echo number_format($totalConvertions = ab_press_getTotalConvertions($experiment));  ?></li>
+			<li class="converstionRate"><span>Total Conversions Rate</span>
 				<?php echo ($totalConvertions == 0) ? "0" : ab_press_getConvertionRate($totalConvertions,$totalVisitor);?>%
 			</li>
 			<li class="variations"><span>Variations</span><?php echo count($experiment->variations); ?></li>
@@ -81,7 +75,7 @@
 
 	<h2>Experiments</h2>
 	<?php if($totalConvertions > 0) : ?>
-		<p><?php echo  ab_press_experimentWinner($experiment);?></p>
+		<p class="ab-press-winner"><?php echo  ab_press_experimentWinner($experiment);?></p>
 	<?php endif; ?>
 
 
@@ -89,20 +83,20 @@
 		<thead>
 		    <tr>
 		        <th width="250">Variation</th>
-		        <th colspan="2">Convertion Rate</th>       
+		        <th colspan="2">Conversions Rate</th>       
 		        <th>Improvement</th>
 		        <th>Change To Beat Original</th>       
-		        <th>Convertion</th>
+		        <th>Conversions</th>
 		        <th>Visitors</th>
 		    </tr>
 		</thead>
 		<tfoot>
 		     <tr>
 		        <th>Variation</th>
-		        <th colspan="2">Convertion Rate</th>       
+		        <th colspan="2">Conversions Rate</th>       
 		        <th>Improvement</th>
 		        <th>Change To Beat Original</th>       
-		        <th>Convertion</th>
+		        <th>Conversions</th>
 		        <th>Visitors</th>
 		    </tr>
 		</tfoot>
@@ -116,11 +110,11 @@
 					( &plusmn;<?php echo $controlInterval = ab_press_getConfidenceInterval($experiment->original_convertions,$experiment->original_visits); ?>)
 				<?php endif; ?>
 			</th>
-			<th width="220">
+			<th >
 				<div id="experiment<?php echo $experiment->id;?>" class="ab-boxplot"></div>
 				<?php if($controlConvertion != 0): ?>
 
-					<script type="text/javascript">
+					<!--<script type="text/javascript">
 						jQuery(document).ready(function() {
 
 							jQuery("#experiment<?php echo $experiment->id;?>").sparkline(
@@ -139,7 +133,7 @@
 						    });
 						})
 						
-					</script>
+					</script>-->
 				<?php endif; ?>
 			</th>
 			<th> -- </th>
@@ -158,11 +152,11 @@
 					( &plusmn;<?php echo $variationInterval = ab_press_getConfidenceInterval($variations->convertions,$variations->visits); ?>)
 				<?php endif; ?>
 			</th>
-			<th width="220">
+			<th >
 				<div id="variation<?php echo $variations->id;?>" class="ab-boxplot"></div>
 				
 				<?php if($variationConvertion != 0): ?>
-					<script type="text/javascript">
+					<!--<script type="text/javascript">
 						jQuery(document).ready(function() {
 
 							jQuery("#variation<?php echo $variations->id;?>").sparkline(
@@ -173,17 +167,19 @@
 						    medianColor: "black",
 						    boxFillColor: '#e5e5e5',
 						    whiskerColor: '#cccccc',
-						    minValue: 6,
-	    				    maxValue: 50,
+						    minValue: -1,
+	    				    maxValue: 150,
 	    				    disableTooltips: true,
 	    				    raw:true
 						    });
 						})
 						
-					</script>
+					</script>-->
 				<?php endif; ?>
 			</th>
-			<th><?php echo ab_press_getImprovement($controlConvertion, $variationConvertion ) ?>%</th>
+			<th>
+				<?php echo ab_press_getImprovement($controlConvertion, $variationConvertion ) ?>%
+			</th>
 			<th><?php echo ab_press_getSignificance($experiment, $variations ); ?>%</th>
 			<th><?php echo number_format($variations->convertions); ?></th>
 			<th><?php echo number_format($variations->visits); ?></th>

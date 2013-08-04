@@ -79,8 +79,8 @@
 
 		<ul class="ab-press-dashboard">
 			<li class="totalVisitore"><span>Total Visitors</span><?php echo number_format($totalVisitor = ab_press_getTotalVisitors($featuredExperiment)); ?></li>
-			<li class="convertions"><span>Convertions</span><?php echo number_format($totalConvertions = ab_press_getTotalConvertions($featuredExperiment));  ?></li>
-			<li class="converstionRate"><span>Convertion Rate</span>
+			<li class="convertions"><span>Total Conversions</span><?php echo number_format($totalConvertions = ab_press_getTotalConvertions($featuredExperiment));  ?></li>
+			<li class="converstionRate"><span>Total Conversions Rate</span>
 				<?php echo ($totalConvertions == 0) ? "0" : ab_press_getConvertionRate($totalConvertions,$totalVisitor);?>%
 			</li>
 			<li class="variations"><span>Variations</span><?php echo count($featuredExperiment->variations); ?></li>
@@ -95,8 +95,8 @@
 		        <th>ID</th>
 		        <th>Name</th>
 		        <th>Visitors</th>       
-		        <th>Convertions</th>
-		        <th>Convertion Rate</th>
+		        <th>Conversions</th>
+		        <th>Conversions Rate</th>
 		        <th>Variations</th>
 		        <th>Experiment Date</th>
 		        <th>Status</th>
@@ -107,8 +107,8 @@
 		        <th>ID</th>
 		        <th>Name</th>
 		        <th>Visitors</th>       
-		        <th>Convertions</th>
-		        <th>Convertions Rate</th>
+		        <th>Conversions</th>
+		        <th>Conversions Rate</th>
 		        <th>Variations</th>
 		        <th>Experiment Dates</th>
 		        <th>Status</th>

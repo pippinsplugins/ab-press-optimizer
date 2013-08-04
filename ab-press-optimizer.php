@@ -8,7 +8,7 @@
  * @wordpress-plugin
  * Plugin Name: A/B Press Optimizer
  * Plugin URI:  http://ABPressOptimizer.com
- * Description: Easy A/B testing from within your WordPress site.  Create an experiment to test any part of your post or page. Try new headlines, buttons and call to actions. View real time metrics to see what experiments are converting best and are statistically significant. 
+ * Description: AB Press Optimizer A/B testing integrated directly into your WordPress site. Quickly and easily create dozens of different versions of your images, buttons and headlines. Showing you which versions will increase your bottom line. 
  * Version:     1.0.0
  * Author:      Ivan Lopez
  * Author URI:  ttp://ABPressOptimizer.com
@@ -46,8 +46,27 @@ require_once( plugin_dir_path( __FILE__ ) . '/includes/functions.php' );
 register_activation_hook( __FILE__, array( 'ABPressOptimizer', 'activate' ) );
 register_deactivation_hook( __FILE__, array( 'ABPressOptimizer', 'deactivate' ) );
 
+// this is the URL our updater / license checker pings. This should be the URL of the site with EDD installed
+define( 'AB_PRESS_STORE_URL', 'http://abpressoptimizer.com' ); // you should use your own CONSTANT name, and be sure to replace it throughout this file
+
+// the name of your product. This should match the download name in EDD exactly
+define( 'AB_PRESS_ITEM_NAME', 'AB Press Optimizer' ); // you should use your own CONSTANT name, and be sure to replace it throughout this file
+
+if( !class_exists( 'EDD_SL_Plugin_Updater' ) ) {
+	// load our custom updater
+	include( dirname( __FILE__ ) . '/includes/EDD_SL_Plugin_Updater.php' );
+}
+
 ABPressOptimizer::get_instance();
 
-session_start();
+// retrieve our license key from the DB
+$license_key = trim( get_option( 'ab_press_license_key' ) );
 
-$_SESSION['test'] = "asdsdaf";
+// setup the updater
+$edd_updater = new EDD_SL_Plugin_Updater( AB_PRESS_STORE_URL, __FILE__, array( 
+		'version' 	=> '1.0', 				// current version number
+		'license' 	=> $license_key, 		// license key (used get_option above to retrieve from DB)
+		'item_name' => AB_PRESS_ITEM_NAME, 	// name of this plugin
+		'author' 	=> 'Ivan Lopez'  // author of this plugin
+	)
+);
