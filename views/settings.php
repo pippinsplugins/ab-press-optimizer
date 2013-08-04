@@ -28,8 +28,8 @@
 	<form method="post" action="options.php" class="ab-press-settings">
 		
 	<?php 
-		$license 	= get_option( 'ab_press_license_key' );
-		$status 	= get_option( 'ab_press_license_status' );
+		$license = get_option( 'ab_press_license_key' );
+		$status = get_option( 'ab_press_license_status' );
 		settings_fields('ab_press_license'); 
 	?>
 
@@ -47,10 +47,10 @@
 			<div class="ab-press-controls">
 				<?php if( $status !== false && $status == 'valid' ) { ?>
 					<span style="color:green;"><?php _e('active'); ?></span>
-					<?php wp_nonce_field( 'edd_sample_nonce', 'edd_sample_nonce' ); ?>
+					<?php wp_nonce_field( 'ab_press_nonce_setting', 'ab_press_nonce' ); ?>
 					<input type="submit" class="button-secondary" name="edd_license_deactivate" value="<?php _e('Deactivate License'); ?>"/>
 				<?php } else {
-					wp_nonce_field( 'edd_sample_nonce', 'edd_sample_nonce' ); ?>
+					wp_nonce_field( 'ab_press_nonce_setting', 'ab_press_nonce' ); ?>
 					<input type="submit" class="button-secondary" name="edd_license_activate" value="<?php _e('Activate License'); ?>"/>
 				<?php } ?>
 			</div>

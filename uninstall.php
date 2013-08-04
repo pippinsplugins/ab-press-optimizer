@@ -16,14 +16,14 @@ if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
 require_once( plugin_dir_path( __FILE__ ) . 'class-ab-press-optimizer.php' );
 
 delete_option('ab_press_optimizer_version');
+delete_option('ab_press_license_key');
+delete_option('ab_press_license_status');
 
-require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+global $wpdb;
 
 $sql = "DROP TABLE " . ABPressOptimizer::get_table_name('experiment') ;
-dbDelta($sql);
+$wpdb->query($sql);
 
 $sql = "DROP TABLE " . ABPressOptimizer::get_table_name('variations') ;
-dbDelta($sql);
+$wpdb->query($sql);
 
-
-wp_clear_scheduled_hook( 'ab_press_experiment_refresh' );

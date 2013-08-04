@@ -1,6 +1,6 @@
 <?php 
 
-if(isset($_COOKIE[ '_ab_press_test']))
+if(isset($_COOKIE[ '_ab_press_test']) && !is_admin())
 {
 	$ab_press_data = ab_press_getExperimentIds();
 
@@ -80,7 +80,7 @@ function ab_press_storeExperiment($experiment, $files = null)
 	$currImage = 0;
 	$currValue = 0;
 
-	$file = [];
+	$file = array();
 	if( isset($files['variationFile']))
 	{
 		$files = $files['variationFile'];
@@ -159,7 +159,7 @@ function ab_press_updateExperiment($experiment, $files = null)
 	$currValue = 0;
 
 
-	$file = [];
+	$file = array();
 	if( isset($files['variationFile']))
 	{
 		$files = $files['variationFile'];
@@ -264,7 +264,7 @@ function ab_press_getExperiment($id){
 
 	if(!$result) return false;
 
-	$result->variations = []; 
+	$result->variations = array(); 
 	foreach ($variations as $variation) {
 		if($result->id == $variation->experiment_id)
 			$result->variations[] = $variation;
@@ -292,7 +292,7 @@ function ab_press_getAllExperiment($offset = null, $limit = null){
 	$variations = $wpdb->get_results($query2, OBJECT );
 
 	foreach ($results as $result) {
-		$result->variations = []; 
+		$result->variations = array(); 
 		foreach ($variations as $variation) {
 			if($result->id == $variation->experiment_id)
 				$result->variations[] = $variation;
@@ -319,7 +319,7 @@ function ab_press_getAllActiveExperiments($withVariations = false){
 	{
 		$variations = $wpdb->get_results($query2, OBJECT );
 		foreach ($results as $result) {
-			$result->variations = []; 
+			$result->variations = array(); 
 			foreach ($variations as $variation) {
 				if($result->id == $variation->experiment_id)
 					$result->variations[] = $variation;
@@ -349,7 +349,7 @@ function ab_press_getExperimentIds(){
 
 
 	foreach ($results as $result) {
-		$result->variations = []; 
+		$result->variations = array(); 
 		foreach ($variations as $variation) {
 			if($result->id == $variation->experiment_id)
 				$result->variations[] = $variation;
@@ -514,7 +514,7 @@ function ab_press_getPlotControlData($experiment)
 	$upper95 = $rate + $variance95;
 	$lower95 = $rate - $variance95;
 
-	$plotPoints = [($lower *100 ) - 1, $lower *100 , $rate *100 , $upper  *100 , ($upper *100 ) + 1 ];
+	$plotPoints = array(($lower *100 ) - 1, $lower *100 , $rate *100 , $upper  *100 , ($upper *100 ) + 1 );
 
 	return implode(", ", $plotPoints);
 }
@@ -536,7 +536,7 @@ function ab_press_getPlotVariationData($variation)
 	$upper95 = $rate + $variance95;
 	$lower95 = $rate - $variance95;
 
-	$plotPoints = [($lower *100 ) - 1, $lower *100 , $rate *100 , $upper  *100 , ($upper *100 ) + 1 ];
+	$plotPoints = array(($lower *100 ) - 1, $lower *100 , $rate *100 , $upper  *100 , ($upper *100 ) + 1 );
 
 	return implode(", ", $plotPoints);
 }
@@ -725,7 +725,7 @@ function ab_press_full_url()
  */
 function ab_press_getTag($content)
 {
-	$tagTypes = ['a', 'p', 'div', 'span', 'section', 'input', 'img'  ];
+	$tagTypes = array('a', 'p', 'div', 'span', 'section', 'input', 'img' );
 	$tag = '';
 	foreach ($tagTypes as $tagType) {
 		if(preg_match('%(^<'.$tagType.'[^>]*>.*?^</'.$tagType.'>)%i', $content, $tempTag) || preg_match('#<'.$tagType.'[^>]*>#i', $content, $tempTag)  )
@@ -749,7 +749,7 @@ function ab_press_getAttributes($content, $tag, $variation, $event, $id)
 
 	if(!empty($tag) && preg_match_all('/(alt|type|title|src|href|class|id|value|name)=("[^"]*")/i', $content, $elemtAttributes))
 	{
-		$attr = [];
+		$attr = array();
 
 		for ($i=0; $i < count($elemtAttributes[1]); $i++) { 
 			$tempAttr = str_replace('"',"", $elemtAttributes[2][$i]);
@@ -791,7 +791,7 @@ function ab_press_getAttributes($content, $tag, $variation, $event, $id)
 	}
 	elseif($variation->type == "img" && empty($tag))
 	{
-		$attr = [];
+		$attr = array();
 		$attr['src'] = $variation->value; 
 		foreach ($attr as $key => $value) {
 			$attributes .= ( ' '. $key . '="' .$value .'" ');

@@ -74,6 +74,7 @@
 		}
 	?>
 	
+	<?php if(isset($featuredExperiment)): ?>
 	<div class="ab-current-test">
 		<h2>Current Experiment Summery: <a href="admin.php?page=abpo-details&eid=<?php echo $featuredExperiment->id; ?>"><?php echo ucwords($featuredExperiment->name); ?></a> </h2>
 
@@ -86,6 +87,7 @@
 			<li class="variations"><span>Variations</span><?php echo count($featuredExperiment->variations); ?></li>
 		</ul>
 	</div>
+	<?php endif; ?>
 	
 	<h2>Experiments</h2>
 

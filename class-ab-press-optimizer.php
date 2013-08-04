@@ -89,6 +89,7 @@ class ABPressOptimizer {
 		add_action('admin_init', array( $this, 'ab_press_license_register_option'));
 		add_action('admin_init', array( $this, 'ab_press_activate_license'));
 		add_action('admin_init', array( $this, 'ab_press_deactivate_license'));
+
 	}
 
 	/**
@@ -147,6 +148,7 @@ class ABPressOptimizer {
 		$this->create_variations_table();
 
 		$this->cronJob();
+
 	}
 
 	/**
@@ -377,7 +379,8 @@ class ABPressOptimizer {
 	public function new_experiment_redirect() {
        $status = get_option( 'ab_press_license_status' );
 
-		if($status != 'active')
+
+		if($status != 'valid')
 		{
 			ab_press_createMessage("You must activate your licence before creating experimnets: <a href='admin.php?page=abpo-settings'>Activate Licence</a>!|ERROR");
 			header( 'Location: admin.php?page=abpo-experiment' ) ;
@@ -565,32 +568,32 @@ class ABPressOptimizer {
 	 * Setup cron job
 	 */
 	private function cronJob(){
-		
-		if( !wp_next_scheduled( 'ab_press_experiment_refresh' ) ) {  
-		    wp_schedule_event( time(), 'twicedaily', 'ab_press_experiment_refresh' );  
-		} 
+		$data = get_transient('ab_press_cron');
 
-		add_action( 'ab_press_experiment_refresh', array( $this, 'update_experiment_status') ); 
+		if(!$data)
+		{
+			$experiments = ab_press_getAllExperiment();
+			foreach ($experiments as $experiment) {
+				$startDate = $experiment->start_date;
+				$endDate = $experiment->end_date;
+				$today = date("Y-m-d");
 
-	}
 
-	/**
-	 * Run update status via cron job
-	 */
-	private function update_experiment_status(){
-		$experiments = ab_press_getAllActiveExperiments();
-		foreach ($experiments as $experiment) {
-			$startDate = $experiment->start_date;
-			$endDate = $experiment->end_date;
-			$today = date("Y-m-d");
+				if($today > $endDate)
+					ab_press_updateExperimentStatus($experiment->id, 'complete');
+				elseif($today < $startDate  )
+					ab_press_updateExperimentStatus($experiment->id, 'paused');
+				elseif($today >= $startDate   && $today <= $endDate  )
+					ab_press_updateExperimentStatus($experiment->id, 'running');
+			}
 
-			if($today > $endDate)
-				ab_press_updateExperimentStatus($experiment->id, 'complete');
-			elseif($startDate > $today)
-				ab_press_updateExperimentStatus($experiment->id, 'paused');
+			set_transient('ab_press_cron', "true", 60*60*12);
 		}
+		
+
 	}
 
+	
 	/**
 	 * Ab Press ShortCode
 	 */
@@ -609,7 +612,6 @@ class ABPressOptimizer {
 	 */
 	public function ab_press_license_register_option() {
 		// creates our settings in the options table
-		session_start();
 		register_setting('ab_press_license', 'ab_press_license_key',  array( $this, 'edd_sanitize_license' ));
 	}
 
@@ -631,15 +633,14 @@ class ABPressOptimizer {
 
 		// listen for our activate button to be clicked
 		if( isset( $_POST['edd_license_activate'] ) ) {
-
 			// run a quick security check 
-		 	if( ! check_admin_referer( 'ab_press_nonce', 'ab_press_nonce' ) ) 	
+		
+		 	if( ! check_admin_referer( 'ab_press_nonce_setting', 'ab_press_nonce' ) ) 	
 				return; // get out if we didn't click the Activate button
 
 			// retrieve the license from the database
 			$license = trim( get_option( 'ab_press_license_key' ) );
-				
-
+			
 			// data to send in our API request
 			$api_params = array( 
 				'edd_action'=> 'activate_license', 
@@ -649,10 +650,10 @@ class ABPressOptimizer {
 			
 			// Call the custom API.
 			$response = wp_remote_get( add_query_arg( $api_params, AB_PRESS_STORE_URL ), array( 'timeout' => 15, 'sslverify' => false ) );
-
 			// make sure the response came back okay
 			if ( is_wp_error( $response ) )
 				return false;
+
 
 			// decode the license data
 			$license_data = json_decode( wp_remote_retrieve_body( $response ) );
@@ -673,7 +674,7 @@ class ABPressOptimizer {
 		if( isset( $_POST['edd_license_deactivate'] ) ) {
 
 			// run a quick security check 
-		 	if( ! check_admin_referer( 'ab_press_nonce', 'ab_press_nonce' ) ) 	
+		 	if( ! check_admin_referer( 'ab_press_nonce_setting', 'ab_press_nonce' ) ) 	
 				return; // get out if we didn't click the Activate button
 
 			// retrieve the license from the database
