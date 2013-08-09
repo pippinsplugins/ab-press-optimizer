@@ -6,30 +6,17 @@
  * @copyright 2013 Ivan Lopez
  *
  * @wordpress-plugin
- * Plugin Name: A/B Press Optimizer
+ * Plugin Name: AB Press Optimizer
  * Plugin URI:  http://ABPressOptimizer.com
  * Description: AB Press Optimizer A/B testing integrated directly into your WordPress site. Quickly and easily create dozens of different versions of your images, buttons and headlines. Showing you which versions will increase your bottom line. 
  * Version:     1.0.0
  * Author:      Ivan Lopez
- * Author URI:  ttp://ABPressOptimizer.com
+ * Author URI:  http://ABPressOptimizer.com
  * Text Domain: ab-press-optimizer-locale
  *
  * ------------------------------------------------------------------------
- * Copyright 2013 A/b Press Optimizer (http://ABPressOptimizer.com)
+ * Copyright 2013 AB Press Optimizer (http://ABPressOptimizer.com)
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  **/
 
 // If this file is called directly, abort.
@@ -49,9 +36,9 @@ register_deactivation_hook( __FILE__, array( 'ABPressOptimizer', 'deactivate' ) 
 // this is the URL our updater / license checker pings. This should be the URL of the site with EDD installed
 define( 'AB_PRESS_STORE_URL', 'http://abpressoptimizer.com' ); // you should use your own CONSTANT name, and be sure to replace it throughout this file
 
-define( 'AB_PRESS_ITEM_NAME', 'Personal+Licence' ); 
-//define( 'AB_PRESS_ITEM_NAME', 'Business+Licence' );
-//define( 'AB_PRESS_ITEM_NAME', 'Agency+Licence' );
+//define( 'AB_PRESS_ITEM_NAME', 'Personal+License' ); 
+//define( 'AB_PRESS_ITEM_NAME', 'Business+License' );
+define( 'AB_PRESS_ITEM_NAME', 'Agency License' );
 
 if( !class_exists( 'EDD_SL_Plugin_Updater' ) ) {
 	// load our custom updater
@@ -72,4 +59,6 @@ $edd_updater = new EDD_SL_Plugin_Updater( AB_PRESS_STORE_URL, __FILE__, array(
 	)
 );
 
-session_start();
+if(!isset($_SESSION) && is_admin()) {
+   session_start();
+}

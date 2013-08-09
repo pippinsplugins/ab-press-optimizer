@@ -76,7 +76,7 @@
 	
 	<?php if(isset($featuredExperiment)): ?>
 	<div class="ab-current-test">
-		<h2>Current Experiment Summery: <a href="admin.php?page=abpo-details&eid=<?php echo $featuredExperiment->id; ?>"><?php echo ucwords($featuredExperiment->name); ?></a> </h2>
+		<h2>Current Experiment Summary: <a href="admin.php?page=abpo-details&eid=<?php echo $featuredExperiment->id; ?>"><?php echo ucwords($featuredExperiment->name); ?></a> </h2>
 
 		<ul class="ab-press-dashboard">
 			<li class="totalVisitore"><span>Total Visitors</span><?php echo number_format($totalVisitor = ab_press_getTotalVisitors($featuredExperiment)); ?></li>

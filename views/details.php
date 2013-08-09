@@ -43,7 +43,7 @@
 	</div>
 
 	<div class="ab-current-test">
-		<h2>Experiment Summery</h2>
+		<h2>Experiment Summary</h2>
 		<ul class="ab-press-dashboard">
 			<li class="totalVisitore"><span>Total Visitors</span><?php echo number_format($totalVisitor = ab_press_getTotalVisitors($experiment)); ?></li>
 			<li class="convertions"><span>Total Conversions</span><?php echo number_format($totalConvertions = ab_press_getTotalConvertions($experiment));  ?></li>

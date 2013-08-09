@@ -23,7 +23,7 @@ class ABPressOptimizer {
 	 *
 	 * @var     string
 	 */
-	protected $version = '1.0.0';
+	protected $version = '1.0.2';
 
 	/**
 	 * Unique identifier for your plugin.
@@ -380,12 +380,12 @@ class ABPressOptimizer {
        $status = get_option( 'ab_press_license_status' );
 
 
-		if($status != 'valid')
-		{
-			ab_press_createMessage("You must activate your licence before creating experimnets: <a href='admin.php?page=abpo-settings'>Activate Licence</a>!|ERROR");
-			header( 'Location: admin.php?page=abpo-experiment' ) ;
-			exit();
-		}
+		// if($status != 'valid')
+		// {
+		// 	ab_press_createMessage("You must activate your licence before creating experimnets: <a href='admin.php?page=abpo-settings'>Activate Licence</a>!|ERROR");
+		// 	header( 'Location: admin.php?page=abpo-experiment' ) ;
+		// 	exit();
+		// }
 
 		if(isset($_POST['save']))
 		{
@@ -645,11 +645,14 @@ class ABPressOptimizer {
 			$api_params = array( 
 				'edd_action'=> 'activate_license', 
 				'license' 	=> $license, 
-				'item_name' => urlencode( AB_PRESS_ITEM_NAME ) // the name of our product in EDD
+				'item_name' => urlencode_deep( AB_PRESS_ITEM_NAME ) // the name of our product in EDD
 			);
 			
 			// Call the custom API.
 			$response = wp_remote_get( add_query_arg( $api_params, AB_PRESS_STORE_URL ), array( 'timeout' => 15, 'sslverify' => false ) );
+			
+			print_r($response);
+			exit();
 			// make sure the response came back okay
 			if ( is_wp_error( $response ) )
 				return false;
@@ -685,7 +688,7 @@ class ABPressOptimizer {
 			$api_params = array( 
 				'edd_action'=> 'deactivate_license', 
 				'license' 	=> $license, 
-				'item_name' => urlencode( AB_PRESS_ITEM_NAME ) // the name of our product in EDD
+				'item_name' => urlencode_deep( AB_PRESS_ITEM_NAME ) // the name of our product in EDD
 			);
 			
 			// Call the custom API.

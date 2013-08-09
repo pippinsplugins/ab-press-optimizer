@@ -34,14 +34,28 @@
 				item.find('.ab-press-variation-label').html('Content');
 				item.find('.ab-press-class-label').html('Element Class').show();
 				item.find('.ab-press-class').show();
-				item.find('.ab-press-variation').replaceWith('<input type="text" name="variation[]" class="ab-press-variation">');
+				if(item.find('.ab-press-file').length > 0)
+				{
+					item.find('.ab-press-file').replaceWith('<input type="text" name="variation[]" class="ab-press-variation">');
+				}
+				else
+				{
+					item.find('.ab-press-variation').replaceWith('<input type="text" name="variation[]" class="ab-press-variation">');
+				}
 			}
 			else if(type == "html") 
 			{
 				item.find('.ab-press-variation-label').html('Mark Up');
 				item.find('.ab-press-class-label').hide();
 				item.find('.ab-press-class').hide();
-				item.find('.ab-press-variation').replaceWith('<textarea name="variation[]" class="ab-press-variation variation"></textarea>');
+				if(item.find('.ab-press-file').length > 0)
+				{
+					item.find('.ab-press-file').replaceWith('<textarea name="variation[]" class="ab-press-variation variation"></textarea>');
+				}
+				else
+				{
+					item.find('.ab-press-variation').replaceWith('<textarea name="variation[]" class="ab-press-variation variation"></textarea>');
+				}
 			}
 			else
 			{

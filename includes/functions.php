@@ -4,6 +4,8 @@ if(isset($_COOKIE[ '_ab_press_test']) && !is_admin())
 {
 	$ab_press_data = ab_press_getExperimentIds();
 
+	if(!$ab_press_data) return false;
+
 	foreach ($ab_press_data as $experiment) {
 		$id = $experiment->id;
 
@@ -63,12 +65,12 @@ function ab_press_storeExperiment($experiment, $files = null)
 	$status = (date("Y-m-d", strtotime($experiment->startDate))  > date("Y-m-d") ) ? 'paused' : "running";
 
 	$row = $wpdb->insert( ABPressOptimizer::get_table_name('experiment') , array(
-		'name' =>esc_sql($experiment->name),
-		'description' =>esc_sql($experiment->description),
+		'name' => $experiment->name,
+		'description' => $experiment->description,
 		'status' => $status ,
 		'start_date' => date("Y-m-d", strtotime($experiment->startDate)) ,
 		'end_date' => date("Y-m-d", strtotime($experiment->endDate)),
-		'goal' =>esc_sql($experiment->goal),
+		'goal' => $experiment->goal,
 		'goal_type' => $experiment->goalTrigger,
 		'url' => $experiment->url,
 		'date_created' => date('Y-m-d H:i:s')
@@ -123,7 +125,7 @@ function ab_press_storeExperiment($experiment, $files = null)
 	}
 	
 
-	ab_press_createMessage("Your experiment has beeb created succesfully!");
+	ab_press_createMessage("Your experiment has been created succesfully!");
 
 	return true;
 }
@@ -143,12 +145,12 @@ function ab_press_updateExperiment($experiment, $files = null)
 	$status = (date("Y-m-d", strtotime($experiment->startDate))  > date("Y-m-d") ) ? 'paused' : "running";
 
 	$row = $wpdb->update( ABPressOptimizer::get_table_name('experiment'), array( 
-			'name' =>esc_sql($experiment->name),
-			'description' =>esc_sql($experiment->description),
+			'name' => $experiment->name ,
+			'description' => $experiment->description,
 			'status' => $status ,
 			'start_date' => date("Y-m-d", strtotime($experiment->startDate)) ,
 			'end_date' => date("Y-m-d", strtotime($experiment->endDate)),
-			'goal' =>esc_sql($experiment->goal),
+			'goal' => $experiment->goal ,
 			'goal_type' => $experiment->goalTrigger,
 			'url' => $experiment->url),
 			array( 'id' => $experiment->id )
@@ -270,7 +272,7 @@ function ab_press_getExperiment($id){
 			$result->variations[] = $variation;
 	}
 
-	return $result;
+	return stripslashes_deep($result);
 }
 
 /**
