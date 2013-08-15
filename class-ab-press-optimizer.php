@@ -23,7 +23,7 @@ class ABPressOptimizer {
 	 *
 	 * @var     string
 	 */
-	protected $version = '1.0.2';
+	protected $version = '1.0.4';
 
 	/**
 	 * Unique identifier for your plugin.
@@ -65,6 +65,9 @@ class ABPressOptimizer {
 		// Load plugin text domain
 		add_action( 'init', array( $this, 'load_plugin_textdomain' ) );
 
+		// init process for button control
+		add_action('init', array( $this, 'ab_press_shortcode_button')) 	;
+
 		// Add the options page and menu item.
 		add_action( 'admin_menu', array( $this, 'add_plugin_admin_menu' ) );
 
@@ -75,20 +78,20 @@ class ABPressOptimizer {
 		// Load public-facing style sheet and JavaScript.
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
 
-		// Define custom functionality. Read more about actions and filters: http://codex.wordpress.org/Plugin_API#Hooks.2C_Actions_and_Filters
-		//add_action( 'TODO', array( $this, 'action_method_name' ) );
-		//add_filter( 'TODO', array( $this, 'filter_method_name' ) );
-
 		// Add Experiment Link to plugin page
 		add_filter('plugin_action_links',  array( $this, 'plugin_action_links') , 10, 2);
 
 		//Create ShortCode
 		add_shortcode('abPress', array( $this, 'ab_press_shortcode'));
+		add_shortcode('abpress', array( $this, 'ab_press_shortcode'));
 
 		//License Code
 		add_action('admin_init', array( $this, 'ab_press_license_register_option'));
 		add_action('admin_init', array( $this, 'ab_press_activate_license'));
 		add_action('admin_init', array( $this, 'ab_press_deactivate_license'));
+
+		//Welcome Popup
+		add_action( 'admin_print_footer_scripts',  array( $this, 'welcome_popup' ));
 
 	}
 
@@ -117,7 +120,7 @@ class ABPressOptimizer {
 	 * @param    boolean    $network_wide    True if WPMU superadmin uses "Network Activate" action, false if WPMU is disabled or plugin is activated on an individual blog.
 	 */
 	public function activate( $network_wide ) {
-		update_option('ab_press_optimizer_version', '1.0.0');
+		update_option('ab_press_optimizer_version', '1.0.4');
 	}
 
 	/**
@@ -159,6 +162,7 @@ class ABPressOptimizer {
 	 * @return    null    Return early if no settings page is registered.
 	 */
 	public function enqueue_admin_styles() {
+		wp_enqueue_style( 'wp-pointer' );
 		wp_enqueue_style( $this->plugin_slug .'-admin-styles', plugins_url( 'css/admin.css', __FILE__ ), array(), $this->version );
 		wp_enqueue_style( $this->plugin_slug .'-admin-jquery-ui', plugins_url( 'css/jquery-ui.css', __FILE__ ), array(), $this->version );
 	}
@@ -171,6 +175,7 @@ class ABPressOptimizer {
 	 * @return    null    Return early if no settings page is registered.
 	 */
 	public function enqueue_admin_scripts() {
+        wp_enqueue_script( 'wp-pointer' );
 		wp_enqueue_script( $this->plugin_slug . '-admin-validation', plugins_url( 'js/jquery.validate.min.js', __FILE__ ), array( 'jquery' ), $this->version );
 		wp_enqueue_script( $this->plugin_slug . '-admin-validationMethod', plugins_url( 'js/additional-methods.js', __FILE__ ), array( 'jquery' ), $this->version );
 		wp_enqueue_script( $this->plugin_slug . '-admin-script', plugins_url( 'js/admin.js', __FILE__ ), array( 'jquery' ), $this->version );
@@ -202,7 +207,7 @@ class ABPressOptimizer {
 			'administrator',
 			'abpo-experiment',
 			array( $this, 'display_plugin_experiment_page' ),
-			plugin_dir_url( __FILE__ ) . '/assets/abPress-icon.png',
+			plugin_dir_url( __FILE__ ) . 'assets/abPress-icon.png',
 			1000
 		);
 
@@ -380,12 +385,12 @@ class ABPressOptimizer {
        $status = get_option( 'ab_press_license_status' );
 
 
-		// if($status != 'valid')
-		// {
-		// 	ab_press_createMessage("You must activate your licence before creating experimnets: <a href='admin.php?page=abpo-settings'>Activate Licence</a>!|ERROR");
-		// 	header( 'Location: admin.php?page=abpo-experiment' ) ;
-		// 	exit();
-		// }
+		if($status != 'valid')
+		{
+			ab_press_createMessage("You must activate your licence before creating experimnets: <a href='admin.php?page=abpo-settings'>Activate Licence</a>!|ERROR");
+			header( 'Location: admin.php?page=abpo-experiment' ) ;
+			exit();
+		}
 
 		if(isset($_POST['save']))
 		{
@@ -465,32 +470,6 @@ class ABPressOptimizer {
 		}
 
 		
-	}
-
-	/**
-	 * NOTE:  Actions are points in the execution of a page or process
-	 *        lifecycle that WordPress fires.
-	 *
-	 *        WordPress Actions: http://codex.wordpress.org/Plugin_API#Actions
-	 *        Action Reference:  http://codex.wordpress.org/Plugin_API/Action_Reference
-	 *
-	 * @since    1.0.0
-	 */
-	public function action_method_name() {
-		// TODO: Define your action hook callback here
-	}
-
-	/**
-	 * NOTE:  Filters are points of execution in which WordPress modifies data
-	 *        before saving it or sending it to the browser.
-	 *
-	 *        WordPress Filters: http://codex.wordpress.org/Plugin_API#Filters
-	 *        Filter Reference:  http://codex.wordpress.org/Plugin_API/Filter_Reference
-	 *
-	 * @since    1.0.0
-	 */
-	public function filter_method_name() {
-		// TODO: Define your filter hook callback here
 	}
 
 	/**
@@ -592,7 +571,6 @@ class ABPressOptimizer {
 		
 
 	}
-
 	
 	/**
 	 * Ab Press ShortCode
@@ -600,11 +578,86 @@ class ABPressOptimizer {
 	public function ab_press_shortcode( $atts, $content = "") {
 
 		extract( shortcode_atts( array(
-		'id' => ''), $atts ) );
+		'id' => '', 'multipage' => false), $atts ) );
 
 		if(!isset($id)) return $content;
 
-		return ab_press_optimizer($id , $content);
+		return ab_press_optimizer($id , $content, $multipage);
+	}
+
+	// registers the buttons for use
+	public function register_ab_press_button($buttons) {
+		array_push($buttons, "|", "ab_press_button");
+		return $buttons;
+	}
+
+	// filters the tinyMCE buttons and adds our custom buttons
+	public function ab_press_shortcode_button() {
+		// Don't bother doing this stuff if the current user lacks permissions
+		if ( ! current_user_can('edit_posts') && ! current_user_can('edit_pages') )
+			return;
+		 
+		// Add only in Rich Editor mode
+		if ( get_user_option('rich_editing') == 'true') {
+			// filter the tinyMCE buttons and add our own
+			add_filter("mce_external_plugins", array( $this, "add_ab_press_tinymce_plugin"));
+			add_filter('mce_buttons', array( $this, 'register_ab_press_button'));
+		}
+	}
+
+	// add the button to the tinyMCE bar
+	public function add_ab_press_tinymce_plugin($plugin_array) {
+		$dir = WP_PLUGIN_URL . '/' . str_replace(basename( __FILE__), "" ,plugin_basename(__FILE__));
+		$plugin_array['ab_press_button'] =$dir . 'js/ab-press-shortcode-button.js';
+		return $plugin_array;
+	}
+
+	/**
+	 * Ab Press Welcom Popup
+	 */
+	public function welcome_popup() {
+
+		 //Check option to hide pointer after initial display
+   		if ( !get_option( 'ab_press_hide_pointer' ) ) {
+	        $pointer_content = '<h3>' . __( 'Start A/B Testing', 'ab_press' ) . '</h3>';
+	        $pointer_content .= '<p>' . __( 'Congratulations. You have just installed AB Press Optimizer. ' .
+	            'Please activate your license and start testing!', 'ab_press' ) . '</p>';
+
+	        $url = admin_url( 'admin.php?page=abpo-settings' );
+	        
+	        ?>
+
+	        <script type="text/javascript">
+	            //<![CDATA[
+	            jQuery(document).ready( function($) {
+            		if(jQuery.fn.pointer)
+            		{
+		        		$("#menu-plugins").pointer({
+		                content: '<?php echo $pointer_content; ?>',
+		                buttons: function( event, t ) {
+		                    button = $('<a id="pointer-close" class="button-secondary"><?php _e( 'Close', 'ab_press' ); ?></a>');
+		                    button.bind("click.pointer", function() {
+		                        t.element.pointer("close");
+		                    });
+		                    return button;
+		                },
+		                position: "left",
+		                close: function() { }
+		        
+		            	}).pointer("open");
+		          
+		            	$("#pointer-close").after('<a id="pointer-primary" class="button-primary" style="margin-right: 5px;" href="<?php echo $url; ?>">' +  '<?php _e( 'AB Press Optimizer Settings', 'ab_press' ); ?>');
+			        }
+		           
+		        });
+	            //]]>
+	        </script>
+
+	        <?php
+	        
+	        //Update option so this pointer is never seen again
+	        update_option( 'ab_press_hide_pointer', 1 );
+		}
 	}
 
 	/**
@@ -632,7 +685,7 @@ class ABPressOptimizer {
 	public function ab_press_activate_license() {
 
 		// listen for our activate button to be clicked
-		if( isset( $_POST['edd_license_activate'] ) ) {
+		if( isset( $_POST['abPressLicenseActivate'] ) ) {
 			// run a quick security check 
 		
 		 	if( ! check_admin_referer( 'ab_press_nonce_setting', 'ab_press_nonce' ) ) 	
@@ -640,31 +693,45 @@ class ABPressOptimizer {
 
 			// retrieve the license from the database
 			$license = trim( get_option( 'ab_press_license_key' ) );
-			
-			// data to send in our API request
-			$api_params = array( 
-				'edd_action'=> 'activate_license', 
-				'license' 	=> $license, 
-				'item_name' => urlencode_deep( AB_PRESS_ITEM_NAME ) // the name of our product in EDD
-			);
-			
-			// Call the custom API.
-			$response = wp_remote_get( add_query_arg( $api_params, AB_PRESS_STORE_URL ), array( 'timeout' => 15, 'sslverify' => false ) );
-			
-			print_r($response);
-			exit();
-			// make sure the response came back okay
-			if ( is_wp_error( $response ) )
-				return false;
+			$license_types = array('Personal License', 'Business License', 'Agency License');
+			$fail_attemps = 0;
+			foreach ($license_types as $type) {
+				// data to send in our API request
+				$api_params = array( 
+					'edd_action'=> 'activate_license', 
+					'license' 	=> $license, 
+					'item_name' => urlencode_deep( $type ) // the name of our product in EDD
+				);
 
+				// Call the custom API.
+				$response = wp_remote_get( add_query_arg( $api_params, AB_PRESS_STORE_URL ), array( 'timeout' => 15, 'sslverify' => false ) );
+				if(is_wp_error( $response ))
+				{
+					ab_press_createMessage("There was an error activation your license please double check your key or contact <a href='http://abpressoptimizer.com/support'>support</a>|ERROR");
+					return false;
+				}
 
-			// decode the license data
-			$license_data = json_decode( wp_remote_retrieve_body( $response ) );
+				// make sure the response came back okay
+				$license_data = json_decode( wp_remote_retrieve_body( $response ) );
+				if ( $license_data->license == "invalid" )
+				{
+					$fail_attemps++;
+					if($fail_attemps >= count($license_types))
+					{
+						ab_press_createMessage("There was an error activation your license please double check your key or contact <a href='http://abpressoptimizer.com/support'>support</a>|ERROR");
+						return false;
+					}
+				}
+				else
+				{
+					update_option( 'ab_press_license_type', $license_data->item_name );
+				}
+	
+			}
 			
 			// $license_data->license will be either "active" or "inactive"
-
 			update_option( 'ab_press_license_status', $license_data->license );
-
+			ab_press_createMessage("Your license has been activated");
 		}
 	}
 
@@ -674,7 +741,7 @@ class ABPressOptimizer {
 	public function ab_press_deactivate_license() {
 
 		// listen for our activate button to be clicked
-		if( isset( $_POST['edd_license_deactivate'] ) ) {
+		if( isset( $_POST['abPressLicenseDeactivate'] ) ) {
 
 			// run a quick security check 
 		 	if( ! check_admin_referer( 'ab_press_nonce_setting', 'ab_press_nonce' ) ) 	
@@ -682,13 +749,12 @@ class ABPressOptimizer {
 
 			// retrieve the license from the database
 			$license = trim( get_option( 'ab_press_license_key' ) );
-				
 
 			// data to send in our API request
 			$api_params = array( 
 				'edd_action'=> 'deactivate_license', 
 				'license' 	=> $license, 
-				'item_name' => urlencode_deep( AB_PRESS_ITEM_NAME ) // the name of our product in EDD
+				'item_name' => urlencode_deep( get_option('ab_press_license_type')  ) // the name of our product in EDD
 			);
 			
 			// Call the custom API.
@@ -705,7 +771,48 @@ class ABPressOptimizer {
 			if( $license_data->license == 'deactivated' )
 				delete_option( 'ab_press_license_status' );
 
+			ab_press_createMessage("Your license was deactivated successfully");
+
 		}
+	}
+
+	public static function ab_press_get_license(){
+		$license = trim( get_option( 'ab_press_license_type' ) );
+		
+		$license = trim( get_option( 'ab_press_license_key' ) );
+		$license_types = array('Personal License', 'Business License', 'Agency License');
+		$fail_attemps = 0;
+		foreach ($license_types as $type) {
+			// data to send in our API request
+			$api_params = array( 
+				'edd_action'=> 'activate_license', 
+				'license' 	=> $license, 
+				'item_name' => urlencode_deep( $type ) // the name of our product in EDD
+			);
+
+			// Call the custom API.
+			$response = wp_remote_get( add_query_arg( $api_params, AB_PRESS_STORE_URL ), array( 'timeout' => 15, 'sslverify' => false ) );
+			if(is_wp_error( $response ))
+				return false;
+
+			// make sure the response came back okay
+			$license_data = json_decode( wp_remote_retrieve_body( $response ) );
+			if ( $license_data->license == "invalid" )
+			{
+				$fail_attemps++;
+				if($fail_attemps >= count($license_types))
+				{
+					return "";
+				}
+			}
+			else
+			{
+				return $license_data->item_name;
+			}
+
+		}
+
+		return "";
 	}
 
 }

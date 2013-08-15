@@ -6,6 +6,9 @@ if(isset($_COOKIE[ '_ab_press_test']) && !is_admin())
 
 	if(!$ab_press_data) return false;
 
+	$ab_press_curr_url = ab_press_full_url();
+
+
 	foreach ($ab_press_data as $experiment) {
 		$id = $experiment->id;
 
@@ -17,8 +20,19 @@ if(isset($_COOKIE[ '_ab_press_test']) && !is_admin())
 
 			if(!$varId || !$hasReference) return false;
 
-			if( ab_press_full_url() != $experiment->url) return false;
 
+			if( ab_press_full_url() != $experiment->url) 
+			{
+				if(strpos( ab_press_full_url() ,'js/public.php' )   !== false) return false;
+
+				if(isset($_COOKIE[ '_ab_press_multi_' . $experiment->id]))
+				{
+					setcookie('_ab_press_ref_'.$experiment->id, $ab_press_curr_url  , time()+60*60*24*45, '/');
+				}
+				
+				return false;
+			}
+			
 			if($hasReference == $referingPage && !isset($_COOKIE['_ab_press_exp_' . $experiment->id .'_conv']) )
 			{
 				if($varId == "c")
@@ -144,6 +158,7 @@ function ab_press_updateExperiment($experiment, $files = null)
 	if(!wp_verify_nonce( $experiment->_wpnonce, 'abpo-new-experiment' )) return false;	
 	$status = (date("Y-m-d", strtotime($experiment->startDate))  > date("Y-m-d") ) ? 'paused' : "running";
 
+	
 	$row = $wpdb->update( ABPressOptimizer::get_table_name('experiment'), array( 
 			'name' => $experiment->name ,
 			'description' => $experiment->description,
@@ -459,6 +474,7 @@ function ab_press_getTotalVisitors($experiment)
  */
 function ab_press_getConvertionRate( $convertions , $total, $isPercent = true)
 {
+	if($total == 0) return 0;
 	if($isPercent )
 		return round(($convertions/$total) * 100, 2);
 	else
@@ -473,6 +489,7 @@ function ab_press_getConvertionRate( $convertions , $total, $isPercent = true)
 function ab_press_getConfidenceInterval($convertions , $total, $isPercent = true)
 {
 	$rate = ab_press_getConvertionRate($convertions, $total, false);
+	if($rate == 0) return 0;
 	$se = sqrt(($rate * (1-$rate))/$total) * 1.96;
 	if($isPercent)
 		return round($se * 100 , 2);
@@ -616,7 +633,7 @@ function ab_press_normalcdf($mean, $sigma, $to) {
 /**
  * Create markup for experiment also used inside of code
  */
-function ab_press_optimizer($id, $content)
+function ab_press_optimizer($id, $content, $multipage = false)
 {
 	$trialMode = false;
 	$isReturningUser = false;
@@ -684,12 +701,19 @@ function ab_press_optimizer($id, $content)
 				createCookie("_ab_press_test", 1, 45);
 			</script>
 			<?php
-			if($experiment->goal_type != "clickEvent")
+			if($multipage){
+			?>
+			<script type="text/javascript">
+				createCookie("_ab_press_multi_<?php echo $id ?>",  1, 1);
+			</script>
+			<?php }
+
+			if($experiment->goal_type != "clickEvent"){
 			?>
 			<script type="text/javascript">
 				createCookie("_ab_press_ref_<?php echo $id ?>",  "<?php echo ab_press_full_url(); ?>", 1);
 			</script>
-			<?php
+			<?php }
 		}
 	}
 

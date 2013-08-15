@@ -1,7 +1,7 @@
 <?php
 
 // uncomment this line for testing
-set_site_transient( 'update_plugins', null );
+//set_site_transient( 'update_plugins', null );
 
 /**
  * Allows plugins to use their own update API.
@@ -9,7 +9,7 @@ set_site_transient( 'update_plugins', null );
  * @author Pippin Williamson
  * @version 1.1
  */
-class EDD_SL_Plugin_Updater {
+class AB_Press_SL_Plugin_Updater {
 	private $api_url  = '';
 	private $api_data = array();
 	private $name     = '';
@@ -73,7 +73,10 @@ class EDD_SL_Plugin_Updater {
 
 		if( false !== $api_response && is_object( $api_response ) && isset( $api_response->new_version ) ) {
 			if( version_compare( $this->version, $api_response->new_version, '<' ) )
+			{
+				update_option( 'ab_press_optimizer_version', $api_response->new_version );
 				$_transient_data->response[$this->name] = $api_response;
+			}
 	}
 		return $_transient_data;
 	}

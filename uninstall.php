@@ -13,11 +13,13 @@ if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
 	exit;
 }
 
-require_once( plugin_dir_path( __FILE__ ) . 'class-ab-press-optimizer.php' );
-
 delete_option('ab_press_optimizer_version');
 delete_option('ab_press_license_key');
 delete_option('ab_press_license_status');
+delete_option('ab_press_hide_pointer');
+delete_option('ab_press_license_type');
+
+require_once( plugin_dir_path( __FILE__ ) . 'class-ab-press-optimizer.php' );
 
 global $wpdb;
 

@@ -68,14 +68,14 @@
 		<div class="ab-press-group">
 			<label class="ab-press-label" for="startDate">Start Date <span class="description">(required)</span></label>
 			<div class="ab-press-controls">
-				<input type="text" name="startDate" id="startDate" class="ab-datepicker" value="<?php echo date("m-d-Y", strtotime($experiment->start_date)); ?>">
+				<input type="text" name="startDate" id="startDate" class="ab-datepicker" value="<?php echo date("m/d/Y", strtotime($experiment->start_date)); ?>">
 			</div>
 		</div> 
 
 		<div class="ab-press-group">
 			<label class="ab-press-label" for="endDate">End Date <span class="description">(required)</span></label>
 			<div class="ab-press-controls">
-				<input type="text"  name="endDate" id="endDate"  class="ab-datepicker" value="<?php echo date("m-d-Y", strtotime($experiment->end_date)); ?>">
+				<input type="text"  name="endDate" id="endDate"  class="ab-datepicker" value="<?php echo date("m/d/Y", strtotime($experiment->end_date)); ?>">
 			</div>
 		</div>
 

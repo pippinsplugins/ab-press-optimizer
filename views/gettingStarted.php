@@ -65,16 +65,16 @@
 
 	<h3>Shortcode</h3>
 
-	<p>To embed your experiment into any post, page or custom post type simply wrap the element your trying to test with the Shortcode and pass it the experiment Id.</p>
+	<p>To embed your experiment into any post, page or custom post type simply wrap the element your trying to test with the Shortcode and pass it the experiment Id. If you would like to run an experiment across multiple pages simply add the multisite attribute ex:( multipage=True).</p>
 
 	<p>EX: </p>
 		
 	<p>
-		[abPress id="1"] &#60;a href=""&#62;Link&#60;/a&#62; [/abPress]
+		[abPress id=1] &#60;a href=""&#62;Link&#60;/a&#62; [/abPress]
 	</p>
 
 	<h3>PHP</h3>
-	<p>If you need more flexibility and want to embed your experiment into one of your WordPress templates. Use our experiment function. That function takes two parameters; the first is your experiment id and the second is the element you’re trying to test.</p>
+	<p>If you need more flexibility and want to embed your experiment into one of your WordPress templates. Use our experiment function. That function takes two required parameters and one optional parameter; the first is your experiment id, the second is the element you're trying to test and the third is a Boolean for if the experiment will be ran across multiple pages. </p>
 
 	<p>EX: </p>
 		

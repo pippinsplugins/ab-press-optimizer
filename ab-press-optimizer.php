@@ -8,8 +8,8 @@
  * @wordpress-plugin
  * Plugin Name: AB Press Optimizer
  * Plugin URI:  http://ABPressOptimizer.com
- * Description: AB Press Optimizer A/B testing integrated directly into your WordPress site. Quickly and easily create dozens of different versions of your images, buttons and headlines. Showing you which versions will increase your bottom line. 
- * Version:     1.0.0
+ * Description: AB Press Optimizer A/B testing integrated directly into your WordPress site. Quickly and easily create dozens of different versions of your images, buttons, content blocks, forms and headlines.
+ * Version:     1.0.4
  * Author:      Ivan Lopez
  * Author URI:  http://ABPressOptimizer.com
  * Text Domain: ab-press-optimizer-locale
@@ -36,29 +36,39 @@ register_deactivation_hook( __FILE__, array( 'ABPressOptimizer', 'deactivate' ) 
 // this is the URL our updater / license checker pings. This should be the URL of the site with EDD installed
 define( 'AB_PRESS_STORE_URL', 'http://abpressoptimizer.com' ); // you should use your own CONSTANT name, and be sure to replace it throughout this file
 
-//define( 'AB_PRESS_ITEM_NAME', 'Personal+License' ); 
-//define( 'AB_PRESS_ITEM_NAME', 'Business+License' );
-define( 'AB_PRESS_ITEM_NAME', 'Agency License' );
-
-if( !class_exists( 'EDD_SL_Plugin_Updater' ) ) {
+if( !class_exists( 'AB_Press_SL_Plugin_Updater' ) ) {
 	// load our custom updater
-	include( dirname( __FILE__ ) . '/includes/EDD_SL_Plugin_Updater.php' );
+	include( dirname( __FILE__ ) . '/includes/AB_Press_SL_Plugin_Updater.php' );
 }
 
 ABPressOptimizer::get_instance();
 
 // retrieve our license key from the DB
 $license_key = trim( get_option( 'ab_press_license_key' ) );
+				
 
-// setup the updater
-$edd_updater = new EDD_SL_Plugin_Updater( AB_PRESS_STORE_URL, __FILE__, array( 
-		'version' 	=> '1.0', 				// current version number
-		'license' 	=> $license_key, 		// license key (used get_option above to retrieve from DB)
-		'item_name' => AB_PRESS_ITEM_NAME, 	// name of this plugin
-		'author' 	=> 'Ivan Lopez'  // author of this plugin
-	)
-);
+if(get_option('ab_press_license_type'))
+{
+	define( 'AB_PRESS_ITEM_NAME', get_option('ab_press_license_type') );
+
+	// setup the updater
+	$edd_updater = new AB_Press_SL_Plugin_Updater( AB_PRESS_STORE_URL, __FILE__, array( 
+			'version' 	=> '1.0.4', 				// current version number
+			'license' 	=> $license_key, 		// license key (used get_option above to retrieve from DB)
+			'item_name' => AB_PRESS_ITEM_NAME, 	// name of this plugin
+			'author' 	=> 'Ivan Lopez'  // author of this plugin
+		)
+	);
+}
+else
+{
+	if(get_option( 'ab_press_license_key' ))
+	{
+		update_option('ab_press_license_type', ABPressOptimizer::ab_press_get_license());
+	}
+}
 
 if(!isset($_SESSION) && is_admin()) {
    session_start();
 }
+

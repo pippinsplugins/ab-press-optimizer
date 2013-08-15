@@ -25,6 +25,19 @@
 		<a href="" class="nav-tab  nav-tab-active">Settings</a>
 	</h2>
 
+	<?php
+		if(isset($_SESSION['message']))
+		{
+			$message = explode("|", $_SESSION['message']);
+			if(count($message) > 1 )
+				echo "<div id='message' class=' below-h2 error'><p>".$message[0]."</p></div>";
+			else
+				echo "<div id='message' class='updated below-h2'><p>".$message[0]."</p></div>";
+			ab_press_deleteMessage();
+		}
+		
+	?>
+
 	<form method="post" action="options.php" class="ab-press-settings">
 		
 	<?php 
@@ -48,10 +61,10 @@
 				<?php if( $status !== false && $status == 'valid' ) { ?>
 					<span style="color:green;"><?php _e('active'); ?></span>
 					<?php wp_nonce_field( 'ab_press_nonce_setting', 'ab_press_nonce' ); ?>
-					<input type="submit" class="button-secondary" name="edd_license_deactivate" value="<?php _e('Deactivate License'); ?>"/>
+					<input type="submit" class="button-secondary" name="abPressLicenseDeactivate" value="<?php _e('Deactivate License'); ?>"/>
 				<?php } else {
 					wp_nonce_field( 'ab_press_nonce_setting', 'ab_press_nonce' ); ?>
-					<input type="submit" class="button-secondary" name="edd_license_activate" value="<?php _e('Activate License'); ?>"/>
+					<input type="submit" class="button-secondary" name="abPressLicenseActivate" value="<?php _e('Activate License'); ?>"/>
 				<?php } ?>
 			</div>
 		</div>

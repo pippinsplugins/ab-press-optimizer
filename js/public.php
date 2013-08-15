@@ -1,13 +1,13 @@
 <?php 
 	require('../../../../wp-load.php'); 
 	$nonce = wp_create_nonce( 'abpress-click-event' );
+
 ?>
 
 (function ($) {
 	"use strict";
 	$(function () {
 		var url = "<?php echo plugins_url() . '/ab-press-optimizer/includes/click_event_handler.php';  ?>";
-
 		$(document).on('click', '.ab-press-action', function(e){
 			
 			var clickInfo  = $(this).attr('abpress');
