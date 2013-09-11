@@ -1,15 +1,22 @@
 <?php
-// this file contains the contents of the popup window
-require('../../../../wp-load.php'); 
+	$ab_press_url = ab_press_url();
 
-$experiments = ab_press_getAllActiveExperiments();
+	function ab_press_url()
+	{
+		$s = empty($_SERVER["HTTPS"]) ? '' : ($_SERVER["HTTPS"] == "on") ? "s" : "";
+		$protocol = substr(strtolower($_SERVER["SERVER_PROTOCOL"]), 0, strpos(strtolower($_SERVER["SERVER_PROTOCOL"]), "/")) . $s;
+		$port = ($_SERVER["SERVER_PORT"] == "80") ? "" : (":".$_SERVER["SERVER_PORT"]);
+		$url = $protocol . "://" . $_SERVER['SERVER_NAME'] . $port . $_SERVER['REQUEST_URI'];
+		$url = explode("wp-content", $url);
+		return $url[0] ;
+	}
 ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
 <title>Insert AB Press Optimizer Experiment</title>
 <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.js"></script>
-<script language="javascript" type="text/javascript" src="<?php echo get_site_url(); ?>/wp-includes/js/tinymce/tiny_mce_popup.js"></script>
+<script language="javascript" type="text/javascript" src="<?php echo $ab_press_url; ?>/wp-includes/js/tinymce/tiny_mce_popup.js"></script>
 
 
 <style type="text/css">
@@ -94,6 +101,15 @@ $experiments = ab_press_getAllActiveExperiments();
 		height: 2em !important;
 		font-size: 12px !important;
 	}
+
+	.hasExperiments, .noExperiments{
+		display: none;
+	}
+
+	.abLoader img {
+		vertical-align: middle;
+		margin-right: 10px;
+	}
 </style>
 
 <script type="text/javascript">
@@ -136,7 +152,24 @@ var ButtonDialog = {
 	}
 };
 tinyMCEPopup.onInit.add(ButtonDialog.init, ButtonDialog);
- 
+
+jQuery.get("<?php echo $ab_press_url;?>wp-admin/admin-ajax.php", {action:"ab-press-optimizer-get"}, function(result){
+	
+	console.log("<?php echo $ab_press_url;?>")
+	if(result.length > 0){
+		jQuery('.hasExperiments').show();
+		jQuery('.abLoader').hide();
+		for (var i = 0; i < result.length; i++) {
+			jQuery('#ab-press-selected').append('<option value="'+result[i].id+'">'+result[i].name+'</option>');
+		};
+	}
+	else
+	{
+		jQuery('.noExperiments').show();
+		jQuery('.abLoader').hide();
+	}
+})
+  
 </script>
 
 </head>
@@ -152,17 +185,19 @@ tinyMCEPopup.onInit.add(ButtonDialog.init, ButtonDialog);
 	        </span>
 	    </div>
 		<div style="padding:15px 15px 0px 15px;">
+
+			<div class="abLoader">
+				<p><img src="../assets/experimentLoader.gif" >Loading Experiments</p>
+			</div>
 			
-			<?php if(empty($experiments)): ?>
+			<div class="noExperiments">
 				<p>Please create a experiment</p>
-				<a href="<?php echo  get_admin_url(); ?>admin.php?page=abpo-new" target="_top" class="button-primary"  >New Experiment</a>
-			<?php else: ?>
-				<p>Select an Experiment</p>
+				<a href="admin.php?page=abpo-new" target="_top"  class="button-primary">New Experiment</a>
+			</div>
+
+			<div class="hasExperiments">
 				<select id="ab-press-selected"  class="ab_press_experiment">
-					<option value="">Select an Experiment</option>
-					<?php foreach ($experiments as $experiment): ?>
-					<option value="<?php echo $experiment->id; ?>" ><?php echo $experiment->name; ?></option>
-					<?php endforeach; ?>
+					<option value="">Select a Experiment</option>
 				</select>
 
 				<p>Is this experiment across the site?</p>
@@ -175,7 +210,7 @@ tinyMCEPopup.onInit.add(ButtonDialog.init, ButtonDialog);
 					<a href="javascript:ButtonDialog.insert(ButtonDialog.local_ed)"  class="button-primary">Insert Experiment</a>
 					<a href="javascript:tinyMCEPopup.close();" class="button-secondary">Close</a>
 				</div>
-			<?php endif; ?>
+			</div>
 			
 		</div>
 	</div>

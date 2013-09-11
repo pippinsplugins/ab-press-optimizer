@@ -17,12 +17,12 @@
 			});
 			 
 			// Register buttons
-			ed.addButton('ab_press_button', {title : 'Insert A AB Press Optimizer Experiment', cmd : 'mcebutton', image: url + '/assets/abPress-tinymc-icon.png' });
+			ed.addButton('ab_press_button', {title : 'Insert An AB Press Optimizer Experiment', cmd : 'mcebutton', image: url + '/assets/abPress-tinymc-icon.png' });
 		},
 		 
 		getInfo : function() {
 			return {
-				longname : 'Insert AB Press Optimizer Experiment',
+				longname : 'Insert An AB Press Optimizer Experiment',
 				author : 'Ivan Lopez',
 				authorurl : 'http://abpressoptimizer.com',
 				infourl : 'http://abpressoptimizer.com',

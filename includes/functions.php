@@ -633,6 +633,7 @@ function ab_press_normalcdf($mean, $sigma, $to) {
 /**
  * Create markup for experiment also used inside of code
  */
+
 function ab_press_optimizer($id, $content, $multipage = false)
 {
 	$trialMode = false;
@@ -657,23 +658,31 @@ function ab_press_optimizer($id, $content, $multipage = false)
 		return $content;
 
 	$experiment = ab_press_getExperiment($id);
-	$control = (object) array('id'=>$experiment->id, 'type'=>'control', 'value' => $content, 'class' => '');
+	$control = (object) array('id'=>"c", 'type'=>'control', 'value' => $content, 'class' => '');
 	array_unshift($experiment->variations, $control);
 
 	if($experiment->status != 'running') return $content; 
 
-	//Select Experiment
-	if(isset($_COOKIE["_ab_press_exp_".$id]))
-	{
-		$currVariation = $_COOKIE["_ab_press_exp_".$id."_var"];
 
-		if($currVariation == "c")
+	
+
+	//Select Experiment
+	if(isset($_COOKIE["_ab_press_exp_".$id]) || isset($GLOBALS['abtestonpage']))
+	{
+
+		if(isset($_COOKIE["_ab_press_exp_".$id]))
+			$currVariation = $_COOKIE["_ab_press_exp_".$id."_var"];
+		else
+			$currVariation =  $GLOBALS['abtestonpage'];
+
+		if($currVariation === "c")
 		{
 			$variation = $control;
 		}
 		else
 		{
 			foreach ($experiment->variations as $var) {
+
 				if($currVariation == $var->id)
 				{
 					$variation = $var;
@@ -684,6 +693,7 @@ function ab_press_optimizer($id, $content, $multipage = false)
 		}
 
 		$isReturningUser = true;
+
 	}
 	else
 	{
@@ -691,6 +701,8 @@ function ab_press_optimizer($id, $content, $multipage = false)
 		$variation = $experiment->variations[$randomVariation];
 
 		$varId = ($variation->type == "control") ? "c" : $variation->id;
+
+		$GLOBALS['abtestonpage'] = $varId;
 
 		if(!$trialMode)
 		{
@@ -773,9 +785,13 @@ function ab_press_getAttributes($content, $tag, $variation, $event, $id)
 {
 	$attributes = "";
 
+
+	$content = strip_tags($content, "<$tag>");
+
 	if(!empty($tag) && preg_match_all('/(alt|type|title|src|href|class|id|value|name)=("[^"]*")/i', $content, $elemtAttributes))
 	{
 		$attr = array();
+
 
 		for ($i=0; $i < count($elemtAttributes[1]); $i++) { 
 			$tempAttr = str_replace('"',"", $elemtAttributes[2][$i]);
@@ -800,7 +816,7 @@ function ab_press_getAttributes($content, $tag, $variation, $event, $id)
 		if(isset($attr['class']))
 			$attr['class'] = (string) $attr['class'] . $ab_press_class . $variation->class;
 		else
-			$attr['class'] = 'ab-press-hock';
+			$attr['class'] = $ab_press_class;
 
 
 
@@ -869,6 +885,9 @@ function ab_press_createControl($content, $tag, $attributes)
 	{
 		if(empty($content))
 			$result = "";
+		elseif (!preg_match("/<\/$tag>$/", $content, $matches) ) {
+			$result = $content;
+		}
 		else
 			$result = "<$tag $attributes>$tagContent</$tag>";
 	}
@@ -895,6 +914,9 @@ function ab_press_createVariation($variation, $tag, $attributes, $experiment){
 
 		if(!$htmlTag)
 			return "<$tag $attributes>$variation->value</$tag>";
+		elseif (!preg_match("/<\/$htmlTag>$/", $html, $matches) ) {
+			return $html;
+		}
 		else
 			return "<$htmlTag $htmlAttributes>$htmlContent</$htmlTag>";
 	}

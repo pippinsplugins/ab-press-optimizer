@@ -66,9 +66,9 @@
 
 	<div class="ab-columns-2">
 		<div class="ab-column-content">
-			<h3>Staus</h3>
+			<h3>Status</h3>
 			<p><?php echo ucwords($experiment->status); ?></p>		
-			<h3>Experimanet Date</h3>
+			<h3>Experiment Date</h3>
 			<p><?php echo date("m-d-Y", strtotime($experiment->start_date)) ?> - <?php echo date("m-d-Y", strtotime($experiment->end_date)) ?></p>
 		</div>
 	</div>	

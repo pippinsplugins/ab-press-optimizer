@@ -23,7 +23,7 @@ class ABPressOptimizer {
 	 *
 	 * @var     string
 	 */
-	protected $version = '1.0.4';
+	protected $version = '1.0.8';
 
 	/**
 	 * Unique identifier for your plugin.
@@ -77,6 +77,12 @@ class ABPressOptimizer {
 
 		// Load public-facing style sheet and JavaScript.
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
+
+		add_action( 'wp_ajax_nopriv_'.$this->plugin_slug.'-submit', array( $this, 'abPress_ajax_submit') );
+		add_action( 'wp_ajax_'.$this->plugin_slug.'-submit', array( $this, 'abPress_ajax_submit') );
+
+		add_action( 'wp_ajax_nopriv_'.$this->plugin_slug.'-get', array( $this, 'abPress_ajax_get') );
+		add_action( 'wp_ajax_'.$this->plugin_slug.'-get', array( $this, 'abPress_ajax_get') );
 
 		// Add Experiment Link to plugin page
 		add_filter('plugin_action_links',  array( $this, 'plugin_action_links') , 10, 2);
@@ -191,7 +197,74 @@ class ABPressOptimizer {
 	 * @since    1.0.0
 	 */
 	public function enqueue_scripts() {
-		wp_enqueue_script( $this->plugin_slug . '-plugin-script', plugins_url( 'js/public.php', __FILE__ ), array( 'jquery' ), $this->version );
+		// embed the javascript file that makes the AJAX request
+		wp_enqueue_script( $this->plugin_slug . '-plugin-script', plugin_dir_url( __FILE__ ) . 'js/public.js', array( 'jquery' ), $this->version  );
+
+		$nonce = wp_create_nonce( 'abpress-click-nonce') ;
+		// declare the URL to the file that handles the AJAX request (wp-admin/admin-ajax.php)
+		wp_localize_script( $this->plugin_slug . '-plugin-script', 'abPressAjax', array( 'ajaxurl' => admin_url( 'admin-ajax.php' ), 'abpresNonce' => $nonce) );
+	}
+
+	/**
+	 * Interaction Click experiment.
+	 *
+	 * @since    1.0.0
+	 */
+	public function abPress_ajax_submit() {
+
+
+		if(isset($_POST['_wpnonce']))
+		{	
+			
+			$ab_press_data = ab_press_getExperimentIds();
+			foreach ($ab_press_data as $experiment) {
+
+				if( $_POST['experiment'] == $experiment->id)
+				{
+					$id = $experiment->id;
+					$varId = $_POST['variation'];
+					if(!isset($_COOKIE['_ab_press_exp_' .$id  .'_conv']))
+					{
+						if($varId == "c")
+						{
+							ab_press_updateConvertion($id, "control", $experiment->original_convertions);
+						}
+						else
+						{
+							$variationCount = 0;
+							foreach ($experiment->variations as $variation) {
+								if($variation->id == $varId)
+								{
+									$variationCount = $variation->convertions ; 
+									break; 
+								} 
+							}
+
+							ab_press_updateConvertion($varId, "variation", $variationCount );
+						}
+						setcookie('_ab_press_exp_' . $experiment->id .'_conv', 1, time()+60*60*24*1, '/');
+
+						echo 'success';
+					}
+
+				}
+				
+			}
+
+		}//End if
+	 	
+		// IMPORTANT: don't forget to "exit"
+		die();
+	}
+
+	public function abPress_ajax_get() {
+
+		header( "Content-Type: application/json" );
+
+		echo json_encode(ab_press_getAllActiveExperiments());
+	 	
+		// IMPORTANT: don't forget to "exit"
+		exit;
 	}
 
 	/**
@@ -387,7 +460,7 @@ class ABPressOptimizer {
 
 		if($status != 'valid')
 		{
-			ab_press_createMessage("You must activate your licence before creating experimnets: <a href='admin.php?page=abpo-settings'>Activate Licence</a>!|ERROR");
+			ab_press_createMessage("You must activate your licence before creating experiments: <a href='admin.php?page=abpo-settings'>Activate Licence</a>!|ERROR");
 			header( 'Location: admin.php?page=abpo-experiment' ) ;
 			exit();
 		}
@@ -511,7 +584,7 @@ class ABPressOptimizer {
 					experiment_id INT NOT NULL,
 					type VARCHAR(100) NOT NULL DEFAULT '',
 					name VARCHAR(250) NOT NULL DEFAULT '',
-					value VARCHAR(500) NOT NULL DEFAULT '',
+					value TEXT NOT NULL DEFAULT '',
 					class VARCHAR(500) NOT NULL DEFAULT '',
 					visits INT NOT NULL DEFAULT 0,
 					convertions INT NOT NULL DEFAULT 0,
@@ -520,6 +593,17 @@ class ABPressOptimizer {
 
 			require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
 			dbDelta($sql);
+		}
+		else{
+			global $wpdb;
+			$upgradedTable = $wpdb->get_row("SELECT DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE table_name =  '" . $table_name . "' AND COLUMN_NAME =  'value'");
+
+			if($upgradedTable->DATA_TYPE != "text")
+			{
+				$sql = "ALTER TABLE " . $table_name . " MODIFY COLUMN value TEXT";
+				$wpdb->query($sql);
+			}
+			
 		}
 	}
 
@@ -725,12 +809,12 @@ class ABPressOptimizer {
 				else
 				{
 					update_option( 'ab_press_license_type', $license_data->item_name );
+					update_option( 'ab_press_license_status', $license_data->license );
 				}
 	
 			}
 			
 			// $license_data->license will be either "active" or "inactive"
-			update_option( 'ab_press_license_status', $license_data->license );
 			ab_press_createMessage("Your license has been activated");
 		}
 	}
