@@ -763,15 +763,16 @@ function ab_press_full_url()
  */
 function ab_press_getTag($content)
 {
-	$tagTypes = array('a', 'p', 'div', 'span', 'section', 'input', 'img' );
+	$tagTypes = array('div', 'p', 'section', 'a',  'span',  'input', 'img' );
 	$tag = '';
 	foreach ($tagTypes as $tagType) {
 		if(preg_match('%(^<'.$tagType.'[^>]*>.*?^</'.$tagType.'>)%i', $content, $tempTag) || preg_match('#<'.$tagType.'[^>]*>#i', $content, $tempTag)  )
 		{
+			
 			$tag = $tagType;
+			break;
 		}
 	}
-
 
 	return $tag;
 }
@@ -788,6 +789,27 @@ function ab_press_getAttributes($content, $tag, $variation, $event, $id)
 
 	$content = strip_tags($content, "<$tag>");
 
+	$ab_press_class = ' ab-press-hock ';
+
+	if($event == "clickEvent")
+	{
+		$ab_press_class = ' ab-press-action ';
+		if($variation->type == "control")
+			$attr['abpress'] =  $id .'-c' ;
+		else
+			$attr['abpress'] =  $id .'-'.$variation->id ;
+	}
+
+	if($event == "clickEventAjax")
+	{
+		$ab_press_class = ' ab-press-action-ajax ';
+		if($variation->type == "control")
+			$attr['abpress'] =  $id .'-c' ;
+		else
+			$attr['abpress'] =  $id .'-'.$variation->id ;
+	}
+
+
 	if(!empty($tag) && preg_match_all('/(alt|type|title|src|href|class|id|value|name)=("[^"]*")/i', $content, $elemtAttributes))
 	{
 		$attr = array();
@@ -798,20 +820,6 @@ function ab_press_getAttributes($content, $tag, $variation, $event, $id)
 			$tempAttr = str_replace("'","", $tempAttr);
 			$attr[strtolower($elemtAttributes[1][$i])] = $tempAttr;
 		}
-
-
-
-		$ab_press_class = ' ab-press-hock ';
-
-		if($event == "clickEvent")
-		{
-			$ab_press_class = ' ab-press-action ';
-			if($variation->type == "control")
-				$attr['abpress'] =  $id .'-c' ;
-			else
-				$attr['abpress'] =  $id .'-'.$variation->id ;
-		}
-
 
 		if(isset($attr['class']))
 			$attr['class'] = (string) $attr['class'] . $ab_press_class . $variation->class;
@@ -826,21 +834,21 @@ function ab_press_getAttributes($content, $tag, $variation, $event, $id)
 
 		}
 
-
-		foreach ($attr as $key => $value) {
-			$attributes .= ( ' '. $key . '="' .$value .'" ');
-		}
 	}
 	elseif($variation->type == "img" && empty($tag))
 	{
 		$attr = array();
 		$attr['src'] = $variation->value; 
-		foreach ($attr as $key => $value) {
-			$attributes .= ( ' '. $key . '="' .$value .'" ');
-		}
+		
+	}
+	else
+	{
+		$attr['class'] = $ab_press_class;
 	}
 
-
+	foreach ($attr as $key => $value) {
+			$attributes .= ( ' '. $key . '="' .$value .'" ');
+		}
 
 	return $attributes;
 }
@@ -901,7 +909,7 @@ function ab_press_createControl($content, $tag, $attributes)
  * @return String
  */
 function ab_press_createVariation($variation, $tag, $attributes, $experiment){
-	
+ 
 	if($variation->type == "html")
 	{
 		$html = $variation->value;
@@ -909,11 +917,8 @@ function ab_press_createVariation($variation, $tag, $attributes, $experiment){
 		$htmlAttributes = ab_press_getAttributes($html, $tag, $variation, $experiment->goal_type,  $experiment->id);
 		$htmlContent = ab_press_getContent($html, $htmlTag);
 
-		if(!$tag)
-			return $html ;
-
 		if(!$htmlTag)
-			return "<$tag $attributes>$variation->value</$tag>";
+			return "<$tag $htmlAttributes>$variation->value</$tag>";
 		elseif (!preg_match("/<\/$htmlTag>$/", $html, $matches) ) {
 			return $html;
 		}
@@ -926,10 +931,12 @@ function ab_press_createVariation($variation, $tag, $attributes, $experiment){
 	}
 	else
 	{
-		if ($tag == "input") 
+		if ($tag == "input")
 			return "<input $attributes />";
-		else
+		elseif( ! empty( $tag ) )
 			return "<$tag $attributes>$variation->value</$tag>";
+		else
+			return $variation->value;
 	}
 }
 

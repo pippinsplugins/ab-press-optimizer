@@ -76,6 +76,7 @@
 				<select name="goalTrigger" id="goalTrigger">
 					<option value="page">Page View</option>
 					<option value="clickEvent">Click Event</option>
+					<option value="clickEventAjax">Click Event Ajax</option>
 					<option value="form">Submit a Form</option>
 				</select>
 			</div>
@@ -84,27 +85,19 @@
 		<div class="ab-press-group" id="ab-urlGroup">
 			<label class="ab-press-label" for="url">URL <span class="description">(required)</span></label>
 			<div class="ab-press-controls">
-				<select id="url" name="url">
-					<option value="" >Select a Page</option>
-					<?php 
-						foreach( get_post_types( array('public' => true) ) as $post_type ) {
-						  if ( in_array( $post_type, array('attachment') ) )
-						    continue;
-						  	$pt = get_post_type_object( $post_type );
-							
-							echo "  <optgroup label=".$pt->labels->name.">";
 
-							query_posts('post_type='.$post_type.'&posts_per_page=-1');
-							while( have_posts() ) {
-								the_post();
-								echo "<option value=".get_permalink().">".get_the_title()."</option>";
-							}
-
-							echo "</optgroup>";
-						}
-					?>
-					
-				</select>
+				<?php if ( function_exists('wp_nonce_field') ) wp_nonce_field('ajax_ab', 'ajax_ab_nonce'); ?>
+				<input type="text" name="url" id="url" value="" class="regular-text">
+				
+				<div class="selectBox">
+					<ul>
+						
+					</ul>
+					<div class="loading">
+						Loading Pages
+						<img src="<?php echo plugins_url( 'ab-press-optimizer/assets/experimentLoader.gif') ?>">
+					</div>
+				</div>
 			</div>
 		</div>
 

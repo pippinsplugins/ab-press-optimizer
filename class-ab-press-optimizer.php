@@ -23,7 +23,7 @@ class ABPressOptimizer {
 	 *
 	 * @var     string
 	 */
-	protected $version = '1.0.8';
+	protected $version = '1.1.0';
 
 	/**
 	 * Unique identifier for your plugin.
@@ -83,6 +83,8 @@ class ABPressOptimizer {
 
 		add_action( 'wp_ajax_nopriv_'.$this->plugin_slug.'-get', array( $this, 'abPress_ajax_get') );
 		add_action( 'wp_ajax_'.$this->plugin_slug.'-get', array( $this, 'abPress_ajax_get') );
+		
+		add_action( 'wp_ajax_'.$this->plugin_slug.'-load-content', array( $this, 'abPress_ajax_load_content') );
 
 		// Add Experiment Link to plugin page
 		add_filter('plugin_action_links',  array( $this, 'plugin_action_links') , 10, 2);
@@ -257,6 +259,11 @@ class ABPressOptimizer {
 		die();
 	}
 
+	/**
+	 * Load all Experiments ajax.
+	 *
+	 * @since    1.0.0
+	 */
 	public function abPress_ajax_get() {
 
 		header( "Content-Type: application/json" );
@@ -265,6 +272,32 @@ class ABPressOptimizer {
 	 	
 		// IMPORTANT: don't forget to "exit"
 		exit;
+	}
+
+	/**
+	 * Load all contet ajax.
+	 *
+	 * @since    1.0.0
+	 */
+	public function abPress_ajax_load_content(){
+		check_ajax_referer( 'ajax_ab', 'ajax_ab_nonce' );
+
+		$args = array();
+
+		if ( isset( $_POST['search'] ) )
+			$args['s'] = stripslashes( $_POST['search'] );
+		$args['pagenum'] = ! empty( $_POST['page'] ) ? absint( $_POST['page'] ) : 1;
+
+		require(ABSPATH . WPINC . '/class-wp-editor.php');
+		$results = _WP_Editors::wp_link_query( $args );
+
+		if ( ! isset( $results ) )
+			wp_die( 0 );
+
+		echo json_encode( $results );
+		echo "\n";
+
+		wp_die();
 	}
 
 	/**

@@ -8,6 +8,23 @@
 			createCookie('_ab_press_click', clickInfo, 1);
 		});
 
+
+		$(document).on('click', '.ab-press-action-ajax', function(e){
+			e.preventDefault();
+			var clickInfo  = $(this).attr('abpress');
+			clickInfo = clickInfo.split('-');
+			jQuery.post(
+				abPressAjax.ajaxurl,
+				{
+					action : 'ab-press-optimizer-submit',
+					experiment : clickInfo[0],
+					variation : clickInfo[1],
+					_wpnonce : abPressAjax.abpresNonce
+				},
+				function( response ) {}
+			);
+		});
+
 		if(readCookie('_ab_press_click') != null)
 		{
 			var temp = readCookie('_ab_press_click');

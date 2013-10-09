@@ -211,3 +211,47 @@ textarea.ab-press-variation  {
 	font-size: 16px;
 	text-align: right;
 }
+
+.selectBox{
+	height: 200px;
+	width: 500px;
+	overflow: auto;
+	margin-top: 10px;
+	border: 1px solid #eee
+}
+
+.selectBox ul{
+	margin: 0px;
+}
+
+.selectBox li{
+	display: block;
+	padding: 5px 5px 5px 5px;
+	border-bottom: 1px solid #ccc;
+	background: #efefef;
+	margin-bottom: 0px;
+	cursor: pointer;
+}
+
+.selectBox li:nth-child(odd) {
+	display: block;
+	padding: 5px 5px 5px 5px;
+	border-bottom: 1px solid #ccc;
+	background: #efefef;
+	background: #fff;
+	margin-bottom: 0px;
+}
+
+.selectBox li:hover{
+	background: #ccc;
+}
+
+.loading {
+	vertical-align: middle;
+	text-align: center;
+	margin: 5px 0px;
+}
+
+.loading img {
+	vertical-align: middle;
+}

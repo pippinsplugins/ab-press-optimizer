@@ -9,7 +9,7 @@
  * Plugin Name: AB Press Optimizer
  * Plugin URI:  http://ABPressOptimizer.com
  * Description: AB Press Optimizer A/B testing integrated directly into your WordPress site. Quickly and easily create dozens of different versions of your images, buttons, content blocks, forms and headlines.
- * Version:     1.0.8
+ * Version:     1.1.0
  * Author:      Ivan Lopez
  * Author URI:  http://ABPressOptimizer.com
  * Text Domain: ab-press-optimizer-locale
@@ -53,7 +53,7 @@ if(get_option('ab_press_license_type'))
 
 	// setup the updater
 	$edd_updater = new AB_Press_SL_Plugin_Updater( AB_PRESS_STORE_URL, __FILE__, array( 
-			'version' 	=> '1.0.8', 				// current version number
+			'version' 	=> '1.1.0', 				// current version number
 			'license' 	=> $license_key, 		// license key (used get_option above to retrieve from DB)
 			'item_name' => AB_PRESS_ITEM_NAME, 	// name of this plugin
 			'author' 	=> 'Ivan Lopez'  // author of this plugin

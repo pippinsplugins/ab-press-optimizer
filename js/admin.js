@@ -94,7 +94,7 @@
 		$('#goalTrigger').on('change', function(){
 			var type = $(this).find('option:selected').val();
 
-			if(type == "clickEvent")
+			if(type == "clickEvent" || type == "clickEventAjax")
 			{
 				$('#ab-urlGroup').hide();
 				$( '#url' ).rules( "remove");
@@ -172,8 +172,63 @@
 	      }
 	    });
 
+	var canLoad = false;
+	var noMoreLoad = false;
+	var currPage = 1;
+
+
+	jQuery.post(
+			ajaxurl ,
+			{
+				action : 'ab-press-optimizer-load-content',
+				page: currPage,
+				ajax_ab_nonce : jQuery('#ajax_ab_nonce').val()
+			},
+			function( response ) {
+				for (var i = 0; i < response.length; i++) {
+					$('.selectBox > ul').append('<li ref="'+response[i].permalink+'">'+response[i].title+'</li>')
+				};
+				canLoad = true;
+				$('.loading').hide();
+			},
+			 "json"
+		);
 
 	
+	$('.selectBox').scroll(function()
+	{	
+
+	    if($('.selectBox').scrollTop() == ($('.selectBox').find('ul').height() - 200) && canLoad && !noMoreLoad)
+	    {	
+	    	$('.loading').show();
+	    	canLoad == false;
+	    	currPage++;
+	    	jQuery.post(
+				ajaxurl ,
+				{
+					action : 'ab-press-optimizer-load-content',
+					page: currPage,
+					ajax_ab_nonce : jQuery('#ajax_ab_nonce').val()
+				},
+				function( response ) {
+					for (var i = 0; i < response.length; i++) {
+						$('.selectBox > ul').append('<li ref="'+response[i].permalink+'">'+response[i].title+'</li>')
+					};
+					if(!response) noMoreLoad = true;
+					canLoad == true;
+					$('.loading').hide();
+				},
+				 "json"
+			);
+	    }
+	});
+
+
+	$('.selectBox').on('click', 'li', function(e)
+	{
+		$('#url').val($(this).attr('ref'));
+	});
+
 
 	
 	});
