@@ -31,10 +31,10 @@
 		}
 	?>
 
-	<form action="<?php echo $_SERVER['PHP_SELF']; ?>?page=abpo-new" method="post" enctype="multipart/form-data" class="ab-press-experimentForm">
+	<form action="<?php echo admin_url( 'admin.php?page=abpo-new' ); ?>" method="post" enctype="multipart/form-data" class="ab-press-experimentForm">
 		<?php if ( function_exists('wp_nonce_field') ) wp_nonce_field('abpo-new-experiment'); ?>
 		<input type="hidden" name="save" value="save">
-		
+
 		<div class="ab-press-group">
 			<label class="ab-press-label" for="name">Experiment Name <span class="description">(required)</span></label>
 			<div class="ab-press-controls">
@@ -88,10 +88,10 @@
 
 				<?php if ( function_exists('wp_nonce_field') ) wp_nonce_field('ajax_ab', 'ajax_ab_nonce'); ?>
 				<input type="text" name="url" id="url" value="" class="regular-text">
-				
+
 				<div class="selectBox">
 					<ul>
-						
+
 					</ul>
 					<div class="loading">
 						Loading Pages
@@ -104,7 +104,7 @@
 		<h3>Experiment Variations</h3>
 
 		<div class="variationContainer">
-			
+
 		</div>
 
 		<a href="" class="button" id="addVariation">Add Variation</a>

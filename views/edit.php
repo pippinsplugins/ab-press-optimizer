@@ -11,7 +11,7 @@
  * @copyright 2013 Ivan Lopez
  */
 ?>
-<?php 
+<?php
 		$experiment = ab_press_getExperiment($_GET['eid']);
 	?>
 
@@ -35,11 +35,11 @@
 		}
 	?>
 
-	<form action="<?php echo $_SERVER['PHP_SELF']; ?>?page=abpo-edit&eid=<?php echo $_GET['eid'] ?>" method="post" enctype="multipart/form-data" class="ab-press-experimentForm">
+	<form action="<?php echo admin_url( 'admin.php?page=abpo-edit&eid=' . $_GET['eid'] ); ?>" method="post" enctype="multipart/form-data" class="ab-press-experimentForm">
 		<?php if ( function_exists('wp_nonce_field') ) wp_nonce_field('abpo-new-experiment'); ?>
 		<input type="hidden" name="update" value="update">
 		<input type="hidden" name="id" value="<?php echo $experiment->id; ?>">
-		
+
 		<div class="ab-press-group">
 			<label class="ab-press-label" for="name">Experiment Name <span class="description">(required)</span></label>
 			<div class="ab-press-controls">
@@ -63,14 +63,14 @@
 					<option value="complete" <?php echo ($experiment->status == "complete") ? "selected='selected'" : "" ?>>Complete</option>
 				</select>
 			</div>
-		</div> 
+		</div>
 
 		<div class="ab-press-group">
 			<label class="ab-press-label" for="startDate">Start Date <span class="description">(required)</span></label>
 			<div class="ab-press-controls">
 				<input type="text" name="startDate" id="startDate" class="ab-datepicker" value="<?php echo date("m/d/Y", strtotime($experiment->start_date)); ?>">
 			</div>
-		</div> 
+		</div>
 
 		<div class="ab-press-group">
 			<label class="ab-press-label" for="endDate">End Date <span class="description">(required)</span></label>
@@ -103,10 +103,10 @@
 				<div class="ab-press-controls">
 				<?php if ( function_exists('wp_nonce_field') ) wp_nonce_field('ajax_ab', 'ajax_ab_nonce'); ?>
 				<input type="text" name="url" id="url" value="<?php echo $experiment->url; ?>" class="regular-text">
-				
+
 				<div class="selectBox">
 					<ul>
-						
+
 					</ul>
 					<div class="loading">
 						Loading Pages
@@ -115,7 +115,7 @@
 				</div>
 
 
-				
+
 			</div>
 		</div>
 
@@ -154,7 +154,7 @@
 						<input type="text" name="class[]" class="ab-press-class" value="<?php echo $variation->class; ?>">
 					<?php endif; ?>
 
-					
+
 					<a class="delete-button as-remove-variation-hide" href="#">Delete</a>
 				</div>
 			<?php endforeach; ?>
